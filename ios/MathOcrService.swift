@@ -51,8 +51,9 @@ actor OcrEngine {
         let chat: [Chat.Message] = [
             .init(role: .user, content: prompt, images: [.url(url)], videos: [])
         ]
-        let userInput = UserInput(
-            chat: chat, processing: .init(resize: .init(width: 1024, height: 1024)))
+        // 重要: 正方形 1024x1024 リサイズはしない(横長の式を縦に潰してアスペクト比が壊れ、
+        //       認識が激しく劣化していた)。モデル既定の前処理(アスペクト比保持)に任せる。
+        let userInput = UserInput(chat: chat)
 
         let stream = try await container.perform { (context: ModelContext) in
             let lmInput = try await context.processor.prepare(input: userInput)
@@ -73,8 +74,10 @@ actor OcrEngine {
     ) async throws -> ModelContainer {
         if let c = container { return c }
         await MainActor.run { onProgress(0) }
+        // Qwen2-VL 2B 4bit。実機 MLX 実効ベンチで 3B(4/6)を上回る 6/6・かつ軽い(~1.5GB)で
+        // 8GB iPad の冷えロードも安定。SmolVLM(1/6) は精度不足、7B は 16GB 機向け。
         let c = try await VLMModelFactory.shared.loadContainer(
-            configuration: VLMRegistry.qwen2_5VL3BInstruct4Bit
+            configuration: VLMRegistry.qwen2VL2BInstruct4Bit
         ) { progress in
             Task { @MainActor in onProgress(progress.fractionCompleted) }
         }

@@ -92,5 +92,7 @@ def latex_to_math(latex: str) -> str:
     s = _caret_braces(s)
     s = _expand_frac_sqrt(s)
     s = _expand_trig(s)
+    # OCR が数字の間に空白を入れることがある（"2 7"→27, "2 5 0"→250）。桁間の空白だけ詰める。
+    s = re.sub(r"(?<=\d)\s+(?=\d)", "", s)
     s = _cleanup(s)
     return s
