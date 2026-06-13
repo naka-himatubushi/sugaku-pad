@@ -14,11 +14,13 @@ struct ContentView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("手書き（認識は後続スライス）")
+                    Text("手書き（ペン・消しゴム・色・太さが使えます）")
                         .font(.caption).foregroundStyle(.secondary)
+                    CanvasToolbar(canvas: canvas)
                     CanvasView(canvas: $canvas)
-                        .frame(height: 180)
-                        .border(Color.secondary)
+                        .frame(height: 260)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.secondary.opacity(0.4)))
 
                     // 確認カード: 認識結果を見せ、計算前に編集・確定する（Goodnotes と同じ設計）
                     VStack(alignment: .leading, spacing: 8) {
