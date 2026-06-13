@@ -220,11 +220,27 @@ def solve_equation(expr: str) -> dict:
                     struct.append(_step(f"両辺を {a} で割る", lt2, pl2))
                 elif degree == 2:
                     kind = "quadratic"
+                    a2, b2, c2 = poly.coeff(var, 2), poly.coeff(var, 1), poly.coeff(var, 0)
                     factored = sp.factor(poly)
-                    struct.append(_step("因数分解", f"{sp.latex(factored)} = 0", f"{factored} = 0"))
-                    struct.append(_step("各因子を 0 にする",
-                                        f"{sp.latex(var)} = {_csv(sols, sp.latex)}",
-                                        f"{var} = {_csv(sols, str)}"))
+                    rational_roots = bool(sols) and all(getattr(s, "is_rational", False) for s in sols)
+                    if rational_roots and factored != poly:
+                        # 有理数解 → 実際に因数分解できる場合だけ「因数分解」と表示
+                        struct.append(_step("因数分解する", f"{sp.latex(factored)} = 0", f"{factored} = 0"))
+                        struct.append(_step("各因子を 0 にする",
+                                            f"{sp.latex(var)} = {_csv(sols, sp.latex)}",
+                                            f"{var} = {_csv(sols, str)}"))
+                    else:
+                        # 因数分解できない(無理数/複素数解) → 解の公式で解く
+                        disc = sp.expand(b2 ** 2 - 4 * a2 * c2)
+                        struct.append(_step("解の公式を使う",
+                                            r"x = \frac{-b \pm \sqrt{b^{2} - 4ac}}{2a}",
+                                            "x = (-b ± √(b²-4ac)) / (2a)"))
+                        struct.append(_step("係数を読み取る",
+                                            f"a = {sp.latex(a2)},\\quad b = {sp.latex(b2)},\\quad c = {sp.latex(c2)}",
+                                            f"a={a2}, b={b2}, c={c2}"))
+                        struct.append(_step("判別式を計算",
+                                            f"D = b^{{2}} - 4ac = {sp.latex(disc)}",
+                                            f"D = b^2-4ac = {disc}"))
 
             struct.append(_step("解", f"{sp.latex(var)} = {_csv(sols, sp.latex)}",
                                 f"{var} = {_csv(sols, str)}"))

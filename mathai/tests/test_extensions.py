@@ -65,3 +65,19 @@ def test_system_no_solution_unsupported():
     # 平行（解なし）: x+y=1, x+y=2 → 解なしは supported=False で返す
     r = solve_equation("x+y=1; x+y=2")
     assert r["supported"] is False
+
+
+# ---- 二次方程式の手順品質(因数分解 vs 解の公式) ----
+def test_quadratic_factorable_uses_factoring():
+    r = solve_equation("x^2-5x+6=0")          # 有理数解 → 因数分解
+    steps = " ".join(r["steps"])
+    assert "因数分解" in steps
+    assert set(r["answer"]) == {"2", "3"} and r["verified"]
+
+
+def test_quadratic_irrational_uses_formula_not_factoring():
+    r = solve_equation("471x^2-81x=25179")    # 無理数解 → 解の公式
+    steps = " ".join(r["steps"])
+    assert "解の公式" in steps and "判別式" in steps
+    assert "因数分解" not in steps             # 変化しない「因数分解」を出さない
+    assert r["supported"] and r["kind"] == "quadratic" and r["verified"]
