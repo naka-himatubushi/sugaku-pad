@@ -5,10 +5,11 @@
 
 ## 現状（2026-06-13）
 
-- ✅ **計算コア `mathai/`** … LaTeX 入力層 + SolveEngine（SymPy）。テスト 21 件 PASS
+- ✅ **計算コア `mathai/`** … LaTeX 入力層 + SolveEngine（SymPy・θ対応・教育的ステップ）。テスト 23 件 PASS、CLI（`python -m mathai`）
 - ✅ **OCR 検証** … pix2tex 印刷体ベースライン。end-to-end 求解 6/7 (85.7%)。エンコーダ Core ML 変換成功
 - ✅ **Web ハーネス `web/`** … 手書き→OCR→確認→求解→ステップ表示を**通しで実行できる実物**（end-to-end テスト緑）。iPad Safari からも使える暫定デモ（ネイティブ版の置き換えではない）
-- ⏳ **iOS アプリ `ios/`** … Solve 本フロー（手書きキャンバス→確認カード→Solve→ステップ表示）+ 各 Spike 画面を実装済み。計算は `SolveService`（当面モック→Xcode 後に埋め込み mathai へ）。**実コンパイル/実機は Xcode 待ち**
+- ✅ **iOS アプリ `ios/`** … Solve 本フロー（手書きキャンバス→確認カード→Solve→ステップ表示）。**iOS 26 シミュレータでビルド成功・起動・UI 全体を目視検証済み**（Xcode 26.5）。計算は現状 `SolveService` モック → 次は埋め込み Python(mathai) へ差し替え（Spike B）
+- ⏳ **残**: 実 solver 連携（埋め込み SymPy）、端末内 OCR デコーダ、実機 Pencil & Foundation Models 確認
 
 ## いますぐ試す（Xcode 不要）
 
@@ -30,13 +31,26 @@ python3 -m pytest mathai -q               # テスト
 ```
 （HTTP・LAN 内のみ。完全 on-device のネイティブ版は `ios/`＝Xcode 待ち。）
 
-## iOS アプリ（Xcode 導入後）
+## iOS アプリ（Xcode 26 で検証済み）
 
+GUI で開く場合:
 ```bash
-xcodegen generate            # project.yml から MathAI.xcodeproj を生成
-open MathAI.xcodeproj         # Xcode で開き、自分の iPad を選んでビルド
+xcodegen generate && open MathAI.xcodeproj   # iPad を選んで実行
 ```
-署名は無料 Apple ID（Personal Team）で可。初回は iPad の「設定 → 一般 → VPN とデバイス管理」で開発者を信頼する。
+
+CLI でシミュレータ実行（`xcode-select` 未切替なら `DEVELOPER_DIR` で回避）:
+```bash
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+xcodegen generate
+UDID=$(xcrun simctl list devices available | grep -m1 'iPad Pro 13' | grep -oE '[0-9A-F-]{36}')
+xcrun simctl boot "$UDID"; xcrun simctl bootstatus "$UDID" -b
+xcodebuild -project MathAI.xcodeproj -scheme MathAI -destination "id=$UDID" \
+  -configuration Debug -derivedDataPath /tmp/mathai_dd build
+xcrun simctl install "$UDID" /tmp/mathai_dd/Build/Products/Debug-iphonesimulator/MathAI.app
+xcrun simctl launch "$UDID" com.nakazawa.mathai
+xcrun simctl io "$UDID" screenshot /tmp/shot.png   # 目視確認
+```
+実機配布は無料 Apple ID（Personal Team）で可。初回は iPad の「設定 → 一般 → VPN とデバイス管理」で開発者を信頼する。
 
 ## 構成
 
