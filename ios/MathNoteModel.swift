@@ -32,9 +32,31 @@ final class MathNoteModel {
     /// 認識/求解に失敗したときの簡易メッセージ(トースト等で使う)。
     var errorText: String?
 
-    // MARK: - ペン設定(純正 PKToolPicker を主役にしつつ最小限のアプリ側制御)
-    /// 既定は Pencil 限定(手のひら誤接触を防ぐ)。トグルで指入力も許可。
-    var allowsFinger: Bool = false
+    // MARK: - ペン設定 / 用紙
+    /// 既定は指も Apple Pencil も描ける(.anyInput)。トグル ON で Pencil のみ(手のひら誤接触防止)。
+    var pencilOnly: Bool = false
+    /// ノートの用紙スタイル(白紙 / 方眼)。
+    var paper: Paper = .plain
+    enum Paper: String, CaseIterable, Identifiable {
+        case plain, grid
+        var id: String { rawValue }
+        var label: String { self == .plain ? "白紙" : "方眼" }
+    }
+
+    // MARK: - ノートに置いた結果カード(ドラッグで移動できる)
+    struct PlacedResult: Identifiable {
+        let id = UUID()
+        var latex: String
+        var result: SolveResult
+        var position: CGPoint
+    }
+    var placedResults: [PlacedResult] = []
+    func placeCard(latex: String, result: SolveResult, at point: CGPoint) {
+        placedResults.append(PlacedResult(latex: latex, result: result, position: point))
+    }
+    func removeCard(_ id: UUID) {
+        placedResults.removeAll { $0.id == id }
+    }
 
     // MARK: - 頭脳(いずれも既存・無改変)
     let ocr = MathOcrService()

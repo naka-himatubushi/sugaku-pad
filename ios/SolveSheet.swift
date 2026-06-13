@@ -9,6 +9,8 @@ struct SolveSheet: View {
     let session: SolveSession
     /// 確認カードの「⟲再計算」で編集後 LaTeX を渡す(OCR をスキップして再求解)。
     let onResolve: (String) -> Void
+    /// 「ノートに置く」: 結果を可動カードとしてノート上に配置する。
+    let onPin: () -> Void
 
     @State private var editedLatex: String = ""
     @State private var didInit = false
@@ -35,6 +37,15 @@ struct SolveSheet: View {
             }
             .navigationTitle("答え")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if session.result?.supported == true {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(action: onPin) {
+                            Label("ノートに置く", systemImage: "pin")
+                        }
+                    }
+                }
+            }
         }
         .presentationDetents([.medium, .large])
         .presentationBackground(.thinMaterial)

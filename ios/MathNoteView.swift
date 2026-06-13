@@ -21,7 +21,11 @@ struct MathNoteView: View {
             // GeometryReader で画面サイズを取り、ポップオーバー位置の clamp に使う。
             GeometryReader { geo in
                 ZStack {
-                    // 1) 全画面キャンバス(最背面)
+                    // 0) 用紙(最背面): 白紙 / 方眼
+                    PaperBackground(paper: model.paper)
+                        .ignoresSafeArea()
+
+                    // 1) 全画面キャンバス(用紙の上。背景は透明にして用紙を透かす)
                     NoteCanvas(canvas: $canvas, model: model)
                         .ignoresSafeArea()
 
@@ -55,7 +59,21 @@ struct MathNoteView: View {
                         .position(popoverPosition(for: rect, in: geo.size))
                     }
 
-                    // 2) 上部浮遊アクションバー(投げ縄/ポップオーバーより上層 = 必ず押せる)
+                    // 置かれた結果カード(ドラッグで移動・タップで詳細・✕で削除)
+                    ForEach($model.placedResults) { $card in
+                        ResultCard(
+                            card: card,
+                            onTap: { model.session = SolveSession(latex: card.latex, result: card.result) },
+                            onClose: { model.removeCard(card.id) }
+                        )
+                        .position(card.position)
+                        .gesture(
+                            DragGesture()
+                                .onChanged { v in card.position = v.location }
+                        )
+                    }
+
+                    // 2) 上部浮遊アクションバー(投げ縄/ポップオーバー/カードより上層 = 必ず押せる)
                     VStack {
                         FloatingActionBar(model: model, canvas: canvas, onRecognizeAll: recognizeAll)
                             .padding(.horizontal, 16)
@@ -82,9 +100,19 @@ struct MathNoteView: View {
                 }
             }
             .sheet(item: $model.session, onDismiss: { model.clearSelection() }) { session in
-                SolveSheet(session: session) { editedLatex in
-                    Task { await model.resolve(latex: editedLatex) }
-                }
+                SolveSheet(
+                    session: session,
+                    onResolve: { editedLatex in Task { await model.resolve(latex: editedLatex) } },
+                    onPin: {
+                        if let r = session.result {
+                            // 投げ縄位置の少し下に置く。無ければ既定位置。あとはドラッグで移動。
+                            let p = model.lassoRect.map { CGPoint(x: $0.midX, y: $0.maxY + 60) }
+                                ?? CGPoint(x: 200, y: 260)
+                            model.placeCard(latex: session.latex, result: r, at: p)
+                            model.session = nil
+                        }
+                    }
+                )
             }
             // 極小選択ガード等の errorText を黙殺せず簡易アラートで surface する。
             .alert("お知らせ", isPresented: errorAlertBinding) {
@@ -223,9 +251,9 @@ struct NoteCanvas: UIViewRepresentable {
     let model: MathNoteModel
 
     func makeUIView(context: Context) -> PKCanvasView {
-        canvas.drawingPolicy = model.allowsFinger ? .anyInput : .pencilOnly
-        canvas.tool = PKInkingTool(.pen, color: .label, width: 4)
-        canvas.backgroundColor = .systemBackground
+        canvas.drawingPolicy = model.pencilOnly ? .pencilOnly : .anyInput
+        canvas.tool = PKInkingTool(.pen, color: .black, width: 4)   // 白い用紙に映える黒
+        canvas.backgroundColor = .clear   // 背面の PaperBackground(白/方眼)を透かす
         // 第一カット: ズーム/スクロールは封じる(投げ縄座標 = drawing 座標を保つため)。
         canvas.alwaysBounceVertical = false
         canvas.alwaysBounceHorizontal = false
@@ -241,7 +269,7 @@ struct NoteCanvas: UIViewRepresentable {
 
     func updateUIView(_ uiView: PKCanvasView, context: Context) {
         // 設定トグル(指入力)を反映。
-        let desired: PKCanvasViewDrawingPolicy = model.allowsFinger ? .anyInput : .pencilOnly
+        let desired: PKCanvasViewDrawingPolicy = model.pencilOnly ? .pencilOnly : .anyInput
         if uiView.drawingPolicy != desired { uiView.drawingPolicy = desired }
 
         guard let picker = context.coordinator.picker else { return }
@@ -326,8 +354,13 @@ struct FloatingActionBar: View {
 
             // 設定(指入力トグル) + 検証メニュー
             Menu {
-                Toggle(isOn: $model.allowsFinger) {
-                    Label("指でも描く", systemImage: "hand.point.up.left")
+                Picker(selection: $model.paper) {
+                    ForEach(MathNoteModel.Paper.allCases) { p in Text(p.label).tag(p) }
+                } label: {
+                    Label("用紙", systemImage: "squareshape.split.3x3")
+                }
+                Toggle(isOn: $model.pencilOnly) {
+                    Label("Apple Pencil のみ(手のひら防止)", systemImage: "pencil.tip")
                 }
                 Section("検証(開発用)") {
                     NavigationLink(value: SpikeRoute.ocr) { Label("Spike A: OCR", systemImage: "a.circle") }
@@ -423,5 +456,73 @@ struct ProcessingOverlay: View {
             .shadow(color: .black.opacity(0.15), radius: 16, y: 4)
         }
         .transition(.opacity)
+    }
+}
+
+// MARK: - 用紙背景(白紙 / 方眼)
+
+/// ノートの紙。ダークモードでも白い紙にし、方眼なら薄いグリッド線を引く。
+/// キャンバスは背景透明なので、この上に手書きが乗る。
+struct PaperBackground: View {
+    let paper: MathNoteModel.Paper
+
+    var body: some View {
+        ZStack {
+            Color.white
+            if paper == .grid {
+                Canvas { ctx, size in
+                    let step: CGFloat = 28
+                    var path = Path()
+                    var x = step
+                    while x < size.width {
+                        path.move(to: CGPoint(x: x, y: 0))
+                        path.addLine(to: CGPoint(x: x, y: size.height)); x += step
+                    }
+                    var y = step
+                    while y < size.height {
+                        path.move(to: CGPoint(x: 0, y: y))
+                        path.addLine(to: CGPoint(x: size.width, y: y)); y += step
+                    }
+                    ctx.stroke(path, with: .color(.black.opacity(0.08)), lineWidth: 0.5)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - ノートに置く結果カード(ドラッグで移動)
+
+/// 答えをノート上に置く小さなカード。ドラッグで移動、タップで詳細シート、✕で削除。
+struct ResultCard: View {
+    let card: MathNoteModel.PlacedResult
+    let onTap: () -> Void
+    let onClose: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Text(MathDisplay.kindLabel(card.result.kind))
+                    .font(.caption2).foregroundStyle(.secondary)
+                if card.result.verified {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.caption2).foregroundStyle(.green)
+                }
+                Spacer(minLength: 8)
+                Button(action: onClose) {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+            Text(card.result.answer.map(MathDisplay.pretty).joined(separator: ",  "))
+                .font(.headline)
+                .foregroundStyle(.primary)
+        }
+        .padding(10)
+        .frame(maxWidth: 220, alignment: .leading)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(.quaternary))
+        .shadow(color: .black.opacity(0.12), radius: 6, y: 2)
+        .contentShape(RoundedRectangle(cornerRadius: 12))
+        .onTapGesture(perform: onTap)
     }
 }
