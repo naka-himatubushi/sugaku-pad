@@ -7,7 +7,7 @@
 
 - ✅ **計算コア `mathai/`** … LaTeX 入力層 + SolveEngine（SymPy）。テスト 21 件 PASS
 - ✅ **OCR 検証** … pix2tex 印刷体ベースライン。end-to-end 求解 6/7 (85.7%)
-- ⏳ **iOS アプリ `MathAI/`** … SwiftUI + PencilKit の土台と各 Spike 画面を用意済み。**実コンパイル/実機は Xcode 待ち**
+- ⏳ **iOS アプリ `ios/`** … Solve 本フロー（手書きキャンバス→確認カード→Solve→ステップ表示）+ 各 Spike 画面を実装済み。計算は `SolveService`（当面モック→Xcode 後に埋め込み mathai へ）。**実コンパイル/実機は Xcode 待ち**
 
 ## いますぐ試す（Xcode 不要）
 

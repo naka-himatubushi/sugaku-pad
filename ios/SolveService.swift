@@ -1,0 +1,44 @@
+// Solve のバックエンド抽象。UI は SolveService 越しに計算する。
+// 当面は MockSolveService（シミュレータでUI確認用）。Xcode 投入後に
+// 埋め込み Python(Python-Apple-support)+mathai.solve_latex 実装へ差し替える。
+import Foundation
+
+struct SolveResult {
+    let supported: Bool
+    let kind: String          // linear / quadratic / evaluate / trigonometric / ...
+    let steps: [String]
+    let answer: [String]
+
+    static let unsupported = SolveResult(supported: false, kind: "unknown", steps: [], answer: [])
+}
+
+protocol SolveService {
+    func solve(_ input: String) -> SolveResult
+}
+
+/// シミュレータで UI を確認するための仮実装。代表式だけ正しい手順を返す。
+/// 本実装（埋め込み SymPy = mathai）に差し替える前提のスタブ。
+struct MockSolveService: SolveService {
+    func solve(_ input: String) -> SolveResult {
+        let normalized = input.replacingOccurrences(of: " ", with: "")
+        switch normalized {
+        case "2x+3=7":
+            return SolveResult(supported: true, kind: "linear",
+                               steps: ["方程式: 2*x + 3 = 7",
+                                       "x の項をまとめる: 2*x = 4",
+                                       "両辺を 2 で割る → x = 2"],
+                               answer: ["2"])
+        case "x^2-5x+6=0", "x^{2}-5x+6=0":
+            return SolveResult(supported: true, kind: "quadratic",
+                               steps: ["方程式: x**2 - 5*x + 6 = 0",
+                                       "因数分解: (x - 3)*(x - 2) = 0",
+                                       "各因子を 0 にする → x = 2, 3"],
+                               answer: ["2", "3"])
+        default:
+            return SolveResult(supported: true, kind: "demo",
+                               steps: ["（モック）本実装では mathai が \(input) を解きます",
+                                       "Xcode 投入後に埋め込み SymPy へ差し替え"],
+                               answer: ["—"])
+        }
+    }
+}
