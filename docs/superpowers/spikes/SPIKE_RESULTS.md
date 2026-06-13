@@ -19,8 +19,12 @@
 - **end-to-end 求解一致（OCR出力→latex_input→SolveEngine）= 6/7 (85.7%)**（`spikes/ocr/eval_solve_from_predictions.py`）
   - exact-match 58% に対し end-to-end 86% → **latex_input 層が OCR の表記揺れ（2X/x^{2}/\\frac/\\,）を吸収**。失敗は x→π の本物の誤読 1 件のみ
 - **暫定示唆**: 文字列一致が低くても「解ければよい」観点では印刷体で 86%。**確認カード（人が修正してから解く）UX があれば実用域に届きうる**。実機手書きの実測が本ゲート。
-- **未（実機ゲート）**: ① pix2tex を CoreML/MLX 化して端末搭載 ② 実 Pencil 手書き 30問で正答率 ≥80% を測定
-- ⚠️ **venv 破損**: `brew install`(mas/xcodegen) の cleanup が python@3.13 を削除 → `.venv`(torch/pix2tex) 死亡。**ライブ OCR 再実行には venv 再構築が必要**（`brew install python@3.13` → venv → `pip install pix2tex`）。end-to-end 評価は captured_predictions.json で torch 無しに再現可能
+- **CoreML 変換 probe（Mac, Xcode 不要）= ✅ エンコーダ変換成功**（`spikes/ocr/try_coreml.py`）
+  - `torch.jit.trace`→coremltools は失敗（動的パディングで `TypeError`）
+  - **`torch.export` + `run_decompositions({})` → coremltools で pix2tex エンコーダの Core ML 変換に成功**。`pix2tex_encoder.mlpackage`(25MB) をロード&推論 OK、出力 `(1,505,256)` の画像特徴を生成
+  - **Spike A の結論（更新）**: 端末内 OCR の最難関 ViT エンコーダは Core ML 化可能と実証。**残課題は自己回帰デコーダ**（x_transformers のループ）→ (a) デコーダも変換 (b) エンコーダ特徴を使い Swift で decode ループ実装、のいずれか。手書きOCRが整うまでは手入力＋確認カードで Solve 成立可能
+- **未（実機ゲート）**: デコーダ処理の実装 → 実 Pencil 手書きでの正答率測定
+- ⚠️ **venv 破損→再構築済**: python@3.13 削除で壊れた venv を python@3.12 で再作成（pix2tex+coremltools9.0+torch2.12）。旧 `brew install`(mas/xcodegen) の cleanup が python@3.13 を削除 → `.venv`(torch/pix2tex) 死亡。**ライブ OCR 再実行には venv 再構築が必要**（`brew install python@3.13` → venv → `pip install pix2tex`）。end-to-end 評価は captured_predictions.json で torch 無しに再現可能
 
 ## Spike B — 端末内 計算（コア実装: 実施済 / 埋め込み・FM比較: 未）
 
