@@ -80,3 +80,12 @@ def test_steps_latex_have_label_and_latex():
     r = solve_equation("2x + 3 = 7")
     assert r["steps_latex"]
     assert all("label" in s and "latex" in s for s in r["steps_latex"])
+
+
+def test_bare_quadratic_expression_is_factored_with_roots():
+    # 等号なしの 2 次式は「因数分解 + =0 の根」を返す（そのまま返さない）
+    r = solve_equation("2x^2 - 3x - 5")
+    assert r["supported"] is True
+    assert r["kind"] == "polynomial"
+    joined = " ".join(s["latex"] for s in r["steps_latex"])
+    assert "-1" in joined and "\\frac{5}{2}" in joined  # 根 x=-1, 5/2 が手順に出る

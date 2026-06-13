@@ -117,9 +117,35 @@ def solve_equation(expr: str) -> dict:
                                 f"{var} = {_csv(sols, str)}"))
             return _result(True, kind, struct, [str(s) for s in sols], [sp.latex(s) for s in sols])
 
-        # "=" を含まない式は評価する
+        # "=" を含まない式
         val = _parse(expr)
-        result = sp.nsimplify(val) if getattr(val, "is_number", False) else sp.simplify(val)
+
+        # 数値はそのまま計算（例: sin(pi/6)=1/2, 1/2+1/3=5/6）
+        if getattr(val, "is_number", False):
+            result = sp.nsimplify(val)
+            struct = [_step("式", sp.latex(val), str(val)),
+                      _step("計算", sp.latex(result), str(result))]
+            return _result(True, "evaluate", struct, [str(result)], [sp.latex(result)])
+
+        # 1 変数・2 次以上の多項式は因数分解 + =0 の根を出す（例: 2x^2-3x-5）
+        var = _pick_var(val)
+        try:
+            degree = sp.Poly(val, var).degree()
+        except sp.PolynomialError:
+            degree = None
+        if degree is not None and degree >= 2:
+            factored = sp.factor(val)
+            roots = sp.solve(val, var)
+            struct = [
+                _step("式", sp.latex(val), str(val)),
+                _step("因数分解", sp.latex(factored), str(factored)),
+                _step(f"{var} = 0 の解", f"{sp.latex(var)} = {_csv(roots, sp.latex)}",
+                      f"{var} = {_csv(roots, str)}"),
+            ]
+            return _result(True, "polynomial", struct, [str(factored)], [sp.latex(factored)])
+
+        # それ以外は簡約（例: 2/(x^2-4)-1/(x^2+2x) → 1/(x(x-2))、恒等式 → 1）
+        result = sp.simplify(val)
         struct = [_step("式", sp.latex(val), str(val)),
                   _step("計算", sp.latex(result), str(result))]
         return _result(True, "evaluate", struct, [str(result)], [sp.latex(result)])
