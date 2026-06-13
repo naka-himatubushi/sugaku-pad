@@ -7,15 +7,15 @@
 """
 import base64
 import datetime
-import io
 import json
+import os
 import sys
 from pathlib import Path
 
+import httpx
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root → mathai を import
 from mathai.solver import solve_latex
@@ -24,15 +24,27 @@ app = FastAPI(title="MathAI Web")
 _INDEX = Path(__file__).parent / "index.html"
 _CAPTURES = Path(__file__).parent / "captures"  # 手書き画像と結果ログの保存先（Claude が把握できるよう）
 _CAPTURES.mkdir(exist_ok=True)
-_ocr = None  # pix2tex は重いので遅延ロード
+# 手書きは vision LLM(Ollama) で認識する（pix2tex は印刷専用で手書き不可と実証済み）
+_OLLAMA = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+_OCR_MODEL = os.environ.get("OCR_MODEL", "gemma4:12b")  # ローカル・マルチモーダル
+_OCR_PROMPT = (
+    "You are a precise math OCR. Transcribe the handwritten mathematical expression "
+    "in the image into ONE line of LaTeX. Output ONLY the LaTeX code — no explanation, "
+    "no surrounding text, no dollar signs, no code fences."
+)
 
 
-def _get_ocr():
-    global _ocr
-    if _ocr is None:
-        from pix2tex.cli import LatexOCR
-        _ocr = LatexOCR()
-    return _ocr
+def _ocr_latex(image_b64: str) -> str:
+    """手書き画像(base64 PNG)を vision LLM で LaTeX に変換する。"""
+    resp = httpx.post(
+        f"{_OLLAMA}/api/generate",
+        json={"model": _OCR_MODEL, "prompt": _OCR_PROMPT,
+              "images": [image_b64], "stream": False, "options": {"temperature": 0}},
+        timeout=120,
+    )
+    text = resp.json().get("response", "").strip()
+    text = text.replace("```latex", "").replace("```", "").strip()  # 囲みを除去
+    return text.strip("$").strip()
 
 
 class SolveRequest(BaseModel):
@@ -52,10 +64,10 @@ def solve(req: SolveRequest) -> dict:
     image_name = None
     if not latex and req.image:
         source = "handwriting"
-        data = base64.b64decode(req.image.split(",", 1)[-1])  # data URL を許容
+        b64 = req.image.split(",", 1)[-1]  # data URL を許容
         image_name = datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f") + ".png"
-        (_CAPTURES / image_name).write_bytes(data)  # 書いた手書き画像を保存
-        latex = _get_ocr()(Image.open(io.BytesIO(data)))
+        (_CAPTURES / image_name).write_bytes(base64.b64decode(b64))  # 手書き画像を保存
+        latex = _ocr_latex(b64)
 
     if latex:
         result = solve_latex(latex)
