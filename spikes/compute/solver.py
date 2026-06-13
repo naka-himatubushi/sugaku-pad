@@ -31,19 +31,27 @@ def solve_equation(expr: str) -> dict:
             poly = sp.expand(lhs - rhs)
             steps = [f"方程式: {lhs} = {rhs}"]
             kind = "equation"
-            try:
-                degree = sp.Poly(poly, x).degree()
-            except sp.PolynomialError:
-                degree = None
 
-            if degree == 1:
-                kind = "linear"
-                steps.append(f"整理: {poly} = 0")
-                steps.append("x について解く")
-            elif degree == 2:
-                kind = "quadratic"
-                steps.append(f"因数分解: {sp.factor(poly)} = 0")
-                steps.append("各因子をゼロにする x を求める")
+            trig_funcs = (sp.sin, sp.cos, sp.tan, sp.cot, sp.sec, sp.csc)
+            is_trig = any(poly.has(f) for f in trig_funcs)
+
+            if is_trig:
+                kind = "trigonometric"
+                steps.append("三角方程式として x を解く")
+            else:
+                try:
+                    degree = sp.Poly(poly, x).degree()
+                except sp.PolynomialError:
+                    degree = None
+
+                if degree == 1:
+                    kind = "linear"
+                    steps.append(f"整理: {poly} = 0")
+                    steps.append("x について解く")
+                elif degree == 2:
+                    kind = "quadratic"
+                    steps.append(f"因数分解: {sp.factor(poly)} = 0")
+                    steps.append("各因子をゼロにする x を求める")
 
             steps.append(f"解: x = {', '.join(str(s) for s in sols)}")
             return {"supported": True, "kind": kind, "steps": steps,

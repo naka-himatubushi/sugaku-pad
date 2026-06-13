@@ -40,3 +40,23 @@ def test_unsupported_input_is_flagged():
     r = solve_equation("???not math???")
     assert r["supported"] is False
     assert r["answer"] == []
+
+
+def test_trig_value_is_evaluated():
+    r = solve_equation("sin(pi/6)")
+    assert r["supported"] is True
+    assert r["kind"] == "evaluate"
+    assert r["answer"] == ["1/2"]
+
+
+def test_trig_identity_simplifies_to_one():
+    r = solve_equation("sin(x)**2 + cos(x)**2")
+    assert r["supported"] is True
+    assert r["answer"] == ["1"]
+
+
+def test_trig_equation_is_classified_and_solved():
+    r = solve_equation("sin(x) = 0")
+    assert r["supported"] is True
+    assert r["kind"] == "trigonometric"
+    assert "0" in r["answer"]
