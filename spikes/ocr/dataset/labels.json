@@ -1,0 +1,14 @@
+{
+  "q01.png": "2x + 3 = 7",
+  "q02.png": "x^2 - 5x + 6 = 0",
+  "q03.png": "\\frac{1}{2} + \\frac{1}{3}",
+  "q04.png": "\\sin^2\\theta + \\cos^2\\theta = 1",
+  "q05.png": "\\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta}",
+  "q06.png": "3x - 9 = 0",
+  "q07.png": "(x+1)(x-2)",
+  "q08.png": "\\frac{x}{2} + 1 = 4",
+  "q09.png": "2\\sin\\theta = 1",
+  "q10.png": "a^2 + b^2 = c^2",
+  "q11.png": "\\sqrt{x+1} = 3",
+  "q12.png": "\\cos(2\\theta) = 1 - 2\\sin^2\\theta"
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "problem": "2*x + 3 = 7",
+    "fm_answer": []
+  },
+  {
+    "problem": "3*x - 9 = 0",
+    "fm_answer": []
+  },
+  {
+    "problem": "x/2 + 1 = 4",
+    "fm_answer": []
+  },
+  {
+    "problem": "x**2 - 5*x + 6 = 0",
+    "fm_answer": []
+  },
+  {
+    "problem": "x**2 - 9 = 0",
+    "fm_answer": []
+  },
+  {
+    "problem": "sin(pi/6)",
+    "fm_answer": []
+  },
+  {
+    "problem": "sin(x)**2 + cos(x)**2",
+    "fm_answer": []
+  },
+  {
+    "problem": "sin(x) = 0",
+    "fm_answer": []
+  }
+]
