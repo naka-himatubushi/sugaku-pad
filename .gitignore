@@ -22,3 +22,6 @@ xcuserdata/
 
 # 手書きキャプチャ（実行時データ）
 web/captures/
+
+# 手書きセッションの一時基準マーカー
+spikes/solve/.session_baseline

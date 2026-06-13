@@ -1,0 +1,287 @@
+{
+  "problems": [
+    {
+      "id": "L1",
+      "category": "一次",
+      "problem": "2x+3=7",
+      "expected": [
+        "2"
+      ],
+      "sympy_truth": [
+        "2"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "2"
+      ],
+      "mathai_kind": "linear"
+    },
+    {
+      "id": "L2",
+      "category": "一次",
+      "problem": "5x-4=11",
+      "expected": [
+        "3"
+      ],
+      "sympy_truth": [
+        "3"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "3"
+      ],
+      "mathai_kind": "linear"
+    },
+    {
+      "id": "L3",
+      "category": "一次",
+      "problem": "3(x-2)=9",
+      "expected": [
+        "5"
+      ],
+      "sympy_truth": [
+        "5"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "5"
+      ],
+      "mathai_kind": "linear"
+    },
+    {
+      "id": "L4",
+      "category": "一次",
+      "problem": "7-2x=1",
+      "expected": [
+        "3"
+      ],
+      "sympy_truth": [
+        "3"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "3"
+      ],
+      "mathai_kind": "linear"
+    },
+    {
+      "id": "Q1",
+      "category": "二次",
+      "problem": "x^2-5x+6=0",
+      "expected": [
+        "2",
+        "3"
+      ],
+      "sympy_truth": [
+        "2",
+        "3"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "2",
+        "3"
+      ],
+      "mathai_kind": "quadratic"
+    },
+    {
+      "id": "Q2",
+      "category": "二次",
+      "problem": "x^2-4=0",
+      "expected": [
+        "-2",
+        "2"
+      ],
+      "sympy_truth": [
+        "-2",
+        "2"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "-2",
+        "2"
+      ],
+      "mathai_kind": "quadratic"
+    },
+    {
+      "id": "Q3",
+      "category": "二次",
+      "problem": "2x^2-3x-2=0",
+      "expected": [
+        "-1/2",
+        "2"
+      ],
+      "sympy_truth": [
+        "-1/2",
+        "2"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "-1/2",
+        "2"
+      ],
+      "mathai_kind": "quadratic"
+    },
+    {
+      "id": "Q4",
+      "category": "二次",
+      "problem": "x^2+2x-8=0",
+      "expected": [
+        "-4",
+        "2"
+      ],
+      "sympy_truth": [
+        "-4",
+        "2"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "-4",
+        "2"
+      ],
+      "mathai_kind": "quadratic"
+    },
+    {
+      "id": "F1",
+      "category": "分数",
+      "problem": "x/2+x/3=5",
+      "expected": [
+        "6"
+      ],
+      "sympy_truth": [
+        "6"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "6"
+      ],
+      "mathai_kind": "linear"
+    },
+    {
+      "id": "F2",
+      "category": "分数",
+      "problem": "(x+1)/2=3",
+      "expected": [
+        "5"
+      ],
+      "sympy_truth": [
+        "5"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "5"
+      ],
+      "mathai_kind": "linear"
+    },
+    {
+      "id": "C1",
+      "category": "三次",
+      "problem": "x^3-6x^2+11x-6=0",
+      "expected": [
+        "1",
+        "2",
+        "3"
+      ],
+      "sympy_truth": [
+        "1",
+        "2",
+        "3"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "1",
+        "2",
+        "3"
+      ],
+      "mathai_kind": "equation"
+    },
+    {
+      "id": "C2",
+      "category": "三次",
+      "problem": "x^3-7x+6=0",
+      "expected": [
+        "-3",
+        "1",
+        "2"
+      ],
+      "sympy_truth": [
+        "-3",
+        "1",
+        "2"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "-3",
+        "1",
+        "2"
+      ],
+      "mathai_kind": "equation"
+    },
+    {
+      "id": "R1",
+      "category": "根号",
+      "problem": "sqrt(x)=3",
+      "expected": [
+        "9"
+      ],
+      "sympy_truth": [
+        "9"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "9"
+      ],
+      "mathai_kind": "equation"
+    },
+    {
+      "id": "R2",
+      "category": "根号",
+      "problem": "sqrt(x+1)=2",
+      "expected": [
+        "3"
+      ],
+      "sympy_truth": [
+        "3"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "3"
+      ],
+      "mathai_kind": "equation"
+    },
+    {
+      "id": "M1",
+      "category": "混合",
+      "problem": "x^2=2x+3",
+      "expected": [
+        "-1",
+        "3"
+      ],
+      "sympy_truth": [
+        "-1",
+        "3"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "-1",
+        "3"
+      ],
+      "mathai_kind": "quadratic"
+    },
+    {
+      "id": "M2",
+      "category": "一次",
+      "problem": "4x+1=2x+9",
+      "expected": [
+        "4"
+      ],
+      "sympy_truth": [
+        "4"
+      ],
+      "mathai_supported": true,
+      "mathai_answer": [
+        "4"
+      ],
+      "mathai_kind": "linear"
+    }
+  ]
+}
