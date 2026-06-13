@@ -2,32 +2,47 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <title>MathAI — 手書き数式 Solve</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <style>
-    body { font-family: -apple-system, system-ui, sans-serif; margin: 0; padding: 16px; background: #f5f5f7; color: #1d1d1f; }
-    h1 { font-size: 1.1rem; }
-    canvas { background: #fff; border: 1px solid #c7c7cc; border-radius: 12px; touch-action: none; width: 100%; max-width: 640px; height: 240px; }
-    .row { margin: 12px 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    button { font-size: 1rem; padding: 8px 14px; border: 0; border-radius: 10px; background: #007aff; color: #fff; }
-    button.secondary { background: #e5e5ea; color: #1d1d1f; }
-    input[type=text] { font-size: 1rem; padding: 8px 10px; border: 1px solid #c7c7cc; border-radius: 10px; min-width: 240px; flex: 1; }
-    .card { background: #fff; border-radius: 12px; padding: 14px; margin-top: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+    html, body { margin: 0; overscroll-behavior: none; }
+    body { font-family: -apple-system, system-ui, sans-serif; padding: 14px; background: #f5f5f7; color: #1d1d1f; -webkit-tap-highlight-color: transparent; }
+    h1 { font-size: 1.05rem; margin: 0 0 8px; }
     .muted { color: #6e6e73; font-size: .85rem; }
+    .pad-wrap { position: relative; max-width: 760px; }
+    canvas#pad { display: block; width: 100%; height: 320px; background: #fff;
+      border: 1px solid #c7c7cc; border-radius: 14px; touch-action: none; cursor: crosshair; }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 10px 0; }
+    button { font-size: 1rem; padding: 9px 14px; border: 0; border-radius: 11px; background: #007aff; color: #fff; }
+    button.tool { background: #e5e5ea; color: #1d1d1f; }
+    button.tool.active { background: #007aff; color: #fff; }
+    button.secondary { background: #e5e5ea; color: #1d1d1f; }
+    .row { margin: 10px 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    input[type=text] { -webkit-user-select: text; user-select: text; font-size: 1rem; padding: 9px 11px;
+      border: 1px solid #c7c7cc; border-radius: 11px; min-width: 220px; flex: 1; }
+    .card { background: #fff; border-radius: 14px; padding: 14px; margin-top: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); max-width: 760px; }
     ol { margin: 8px 0 0; padding-left: 1.3em; }
     li { margin: 4px 0; }
-    .answer { font-size: 1.2rem; font-weight: 600; margin-top: 8px; }
+    .answer { font-size: 1.25rem; font-weight: 600; margin-top: 8px; }
   </style>
 </head>
-<body>
-  <h1>MathAI — 手書き数式を解く（検証ハーネス）</h1>
-  <p class="muted">数式を手書き →「認識して解く」。または下のテキスト欄に直接入力。</p>
-  <canvas id="pad" width="1280" height="480"></canvas>
+<body oncontextmenu="return false">
+  <h1>MathAI — 手書き数式を解く</h1>
+  <p class="muted">数式を手書き →「認識して解く」。ペン／消しゴム・元に戻す対応。</p>
+
+  <div class="pad-wrap"><canvas id="pad"></canvas></div>
+
+  <div class="toolbar">
+    <button class="tool active" id="btnPen" onclick="setTool('pen')">✏️ ペン</button>
+    <button class="tool" id="btnEraser" onclick="setTool('eraser')">🧽 消しゴム</button>
+    <button class="secondary" onclick="undo()">↩︎ 元に戻す</button>
+    <button class="secondary" onclick="clearPad()">全消去</button>
+  </div>
   <div class="row">
     <button onclick="recognizeAndSolve()">認識して解く</button>
-    <button class="secondary" onclick="clearPad()">クリア</button>
   </div>
   <div class="row">
     <input id="latex" type="text" placeholder="例: 2x + 3 = 7 / \frac{x}{2}+1=4" value="2x + 3 = 7" />
@@ -38,27 +53,99 @@
 <script>
 const pad = document.getElementById('pad');
 const ctx = pad.getContext('2d');
-ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.strokeStyle = '#000';
-let drawing = false, last = null;
-function pos(e){ const r = pad.getBoundingClientRect(); const t = e.touches ? e.touches[0] : e;
-  return { x: (t.clientX - r.left) * pad.width / r.width, y: (t.clientY - r.top) * pad.height / r.height }; }
-function start(e){ drawing = true; last = pos(e); e.preventDefault(); }
-function move(e){ if(!drawing) return; const p = pos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last = p; e.preventDefault(); }
-function end(){ drawing = false; }
-pad.addEventListener('pointerdown', start); pad.addEventListener('pointermove', move);
-pad.addEventListener('pointerup', end); pad.addEventListener('pointerleave', end);
-function clearPad(){ ctx.clearRect(0,0,pad.width,pad.height); }
+let dpr = Math.max(1, window.devicePixelRatio || 1);
+let strokes = [];           // 保持モード（元に戻す/再描画用）
+let drawing = false, cur = null, lastPt = null;
+let tool = 'pen';
+const PEN = '#111', BG = '#fff';
 
-async function postSolve(body){
-  const res = await fetch('/solve', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+function fitCanvas() {
+  const rect = pad.getBoundingClientRect();
+  pad.width = Math.round(rect.width * dpr);
+  pad.height = Math.round(rect.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  redraw();
+}
+function cssSize() { return { w: pad.width / dpr, h: pad.height / dpr }; }
+
+function lineW(t, p) {
+  if (t === 'eraser') return 28;
+  return 1.6 + 3.4 * (p == null ? 0.5 : p);  // 筆圧でペン先の太さ変化
+}
+function pos(e) {
+  const r = pad.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top, p: e.pressure > 0 ? e.pressure : 0.5 };
+}
+function strokeColor(t) { return t === 'eraser' ? BG : PEN; }
+
+function segment(t, a, b) {
+  ctx.beginPath();
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = strokeColor(t);
+  ctx.lineWidth = lineW(t, (a.p + b.p) / 2);
+  ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+}
+function dot(t, p) {
+  ctx.beginPath(); ctx.fillStyle = strokeColor(t);
+  ctx.arc(p.x, p.y, lineW(t, p.p) / 2, 0, Math.PI * 2); ctx.fill();
+}
+function redraw() {
+  const { w, h } = cssSize();
+  ctx.fillStyle = BG; ctx.fillRect(0, 0, w, h);   // 常に白背景（OCR 安定）
+  for (const s of strokes) {
+    if (s.pts.length === 1) { dot(s.tool, s.pts[0]); continue; }
+    for (let i = 1; i < s.pts.length; i++) segment(s.tool, s.pts[i - 1], s.pts[i]);
+  }
+}
+
+function down(e) {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  drawing = true;
+  cur = { tool, pts: [] };
+  strokes.push(cur);
+  const p = pos(e); cur.pts.push(p); lastPt = p; dot(tool, p);
+  try { pad.setPointerCapture(e.pointerId); } catch (_) {}
+  e.preventDefault();
+}
+function move(e) {
+  if (!drawing) return;
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for (const ev of evs) {
+    const p = pos(ev);
+    segment(cur.tool, lastPt, p);   // 高頻度サンプリングでなめらかに
+    cur.pts.push(p); lastPt = p;
+  }
+  e.preventDefault();
+}
+function up(e) { drawing = false; cur = null; e.preventDefault(); }
+
+pad.addEventListener('pointerdown', down);
+pad.addEventListener('pointermove', move);
+pad.addEventListener('pointerup', up);
+pad.addEventListener('pointercancel', up);
+// 選択・コールアウト（コピー/貼り付け）誤作動の抑止
+['gesturestart', 'selectstart', 'dblclick', 'contextmenu'].forEach(ev =>
+  pad.addEventListener(ev, e => e.preventDefault()));
+window.addEventListener('resize', fitCanvas);
+
+function setTool(t) {
+  tool = t;
+  document.getElementById('btnPen').classList.toggle('active', t === 'pen');
+  document.getElementById('btnEraser').classList.toggle('active', t === 'eraser');
+}
+function undo() { strokes.pop(); redraw(); }
+function clearPad() { strokes = []; redraw(); }
+
+async function postSolve(body) {
+  const res = await fetch('/solve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   return res.json();
 }
-function render(data){
+function render(data) {
   const el = document.getElementById('result');
   el.style.display = 'block';
-  if(!data.supported){
-    el.innerHTML = '<div class="muted">認識結果（確認）</div><div id="rl"></div><p>⚠️ 対応範囲外、または認識に失敗しました。テキスト欄で修正して再試行してください。</p>';
-    if(data.latex) katex.render(data.latex, document.getElementById('rl'), {throwOnError:false});
+  if (!data.supported) {
+    el.innerHTML = '<div class="muted">認識結果（確認）</div><div id="rl"></div><p>⚠️ 対応範囲外、または認識に失敗。テキスト欄で直して再試行してください。</p>';
+    if (data.latex) katex.render(data.latex, document.getElementById('rl'), { throwOnError: false });
     return;
   }
   const steps = data.steps.map(s => `<li>${s}</li>`).join('');
@@ -66,11 +153,13 @@ function render(data){
     <div class="muted" style="margin-top:8px">種別: ${data.kind}</div>
     <ol>${steps}</ol>
     <div class="answer">答え: ${data.answer.join(', ')}</div>`;
-  katex.render(data.latex, document.getElementById('rl'), {throwOnError:false});
+  katex.render(data.latex, document.getElementById('rl'), { throwOnError: false });
   document.getElementById('latex').value = data.latex;
 }
-async function recognizeAndSolve(){ render(await postSolve({ image: pad.toDataURL('image/png') })); }
-async function solveText(){ render(await postSolve({ latex: document.getElementById('latex').value })); }
+async function recognizeAndSolve() { render(await postSolve({ image: pad.toDataURL('image/png') })); }
+async function solveText() { render(await postSolve({ latex: document.getElementById('latex').value })); }
+
+fitCanvas();
 </script>
 </body>
 </html>

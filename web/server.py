@@ -6,7 +6,9 @@
 起動: .venv/bin/uvicorn web.server:app --host 0.0.0.0 --port 8000
 """
 import base64
+import datetime
 import io
+import json
 import sys
 from pathlib import Path
 
@@ -20,6 +22,8 @@ from mathai.solver import solve_latex
 
 app = FastAPI(title="MathAI Web")
 _INDEX = Path(__file__).parent / "index.html"
+_CAPTURES = Path(__file__).parent / "captures"  # 手書き画像と結果ログの保存先（Claude が把握できるよう）
+_CAPTURES.mkdir(exist_ok=True)
 _ocr = None  # pix2tex は重いので遅延ロード
 
 
@@ -44,10 +48,34 @@ def index() -> str:
 @app.post("/solve")
 def solve(req: SolveRequest) -> dict:
     latex = (req.latex or "").strip()
+    source = "text"
+    image_name = None
     if not latex and req.image:
-        raw = req.image.split(",", 1)[-1]  # "data:image/png;base64,...." を許容
-        image = Image.open(io.BytesIO(base64.b64decode(raw)))
-        latex = _get_ocr()(image)
-    if not latex:
-        return {"latex": "", "supported": False, "kind": "", "steps": [], "answer": []}
-    return {"latex": latex, **solve_latex(latex)}
+        source = "handwriting"
+        data = base64.b64decode(req.image.split(",", 1)[-1])  # data URL を許容
+        image_name = datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f") + ".png"
+        (_CAPTURES / image_name).write_bytes(data)  # 書いた手書き画像を保存
+        latex = _get_ocr()(Image.open(io.BytesIO(data)))
+
+    if latex:
+        result = solve_latex(latex)
+    else:
+        result = {"supported": False, "kind": "", "steps": [], "answer": []}
+
+    _log(source, image_name, latex, result)
+    return {"latex": latex, **result}
+
+
+def _log(source: str, image_name: str | None, latex: str, result: dict) -> None:
+    """各リクエストを captures/log.jsonl に記録（Claude が後から把握できるよう）。"""
+    entry = {
+        "time": datetime.datetime.now().isoformat(timespec="seconds"),
+        "source": source,
+        "image": image_name,
+        "latex": latex,
+        "supported": result["supported"],
+        "kind": result["kind"],
+        "answer": result["answer"],
+    }
+    with (_CAPTURES / "log.jsonl").open("a", encoding="utf-8") as f:
+        f.write(json.dumps(entry, ensure_ascii=False) + "\n")

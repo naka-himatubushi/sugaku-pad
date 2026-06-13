@@ -19,3 +19,6 @@ xcuserdata/
 
 # xcodegen 生成物（project.yml から再生成）
 *.xcodeproj/
+
+# 手書きキャプチャ（実行時データ）
+web/captures/
