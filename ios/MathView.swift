@@ -3,6 +3,29 @@
 // Web 版の KaTeX に相当。確認カードや答えの表示に使う。
 import SwiftUI
 import SwiftMath
+import PencilKit
+
+/// 手書き(PKDrawing)を OCR 用の「黒字・白地」画像へ正規化する共有ヘルパ。
+/// メインノートと確認カードの訂正キャンバスで同じレシピを使う。
+/// ①全ストロークを黒に塗替え ②.light トレイトで描画(PencilKit のダーク反転回避)
+/// ③白背景に合成。ペン色や端末の外観に関係なく確実に黒字白地になる。
+func normalizedOcrImage(from drawing: PKDrawing, rect: CGRect) -> UIImage {
+    let blackStrokes = drawing.strokes.map { s -> PKStroke in
+        var ns = s
+        ns.ink = PKInk(s.ink.inkType, color: .black)
+        return ns
+    }
+    var strokeImg = UIImage()
+    UITraitCollection(userInterfaceStyle: .light).performAsCurrent {
+        strokeImg = PKDrawing(strokes: blackStrokes).image(from: rect, scale: 3.0)
+    }
+    let renderer = UIGraphicsImageRenderer(size: strokeImg.size)
+    return renderer.image { ctx in
+        UIColor.white.setFill()
+        ctx.fill(CGRect(origin: .zero, size: strokeImg.size))
+        strokeImg.draw(at: .zero)
+    }
+}
 
 struct MathView: UIViewRepresentable {
     let latex: String

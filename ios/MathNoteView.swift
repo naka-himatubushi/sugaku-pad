@@ -111,7 +111,8 @@ struct MathNoteView: View {
                             model.placeCard(latex: session.latex, result: r, at: p)
                             model.session = nil
                         }
-                    }
+                    },
+                    recognizeImage: { img in try? await model.ocr.recognize(img) }
                 )
             }
             // 極小選択ガード等の errorText を黙殺せず簡易アラートで surface する。
@@ -240,21 +241,7 @@ struct MathNoteView: View {
     ///          ②.light トレイトで描画(PencilKit がダーク文脈で黒インクを白へ自動反転する罠を回避)
     ///          ③白背景に合成(透明を無くし黒字白地に)。
     private func ocrImage(rect: CGRect) -> UIImage {
-        let blackStrokes = canvas.drawing.strokes.map { s -> PKStroke in
-            var ns = s
-            ns.ink = PKInk(s.ink.inkType, color: .black)
-            return ns
-        }
-        var strokeImg = UIImage()
-        UITraitCollection(userInterfaceStyle: .light).performAsCurrent {
-            strokeImg = PKDrawing(strokes: blackStrokes).image(from: rect, scale: 3.0)
-        }
-        let renderer = UIGraphicsImageRenderer(size: strokeImg.size)
-        return renderer.image { ctx in
-            UIColor.white.setFill()
-            ctx.fill(CGRect(origin: .zero, size: strokeImg.size))
-            strokeImg.draw(at: .zero)
-        }
+        normalizedOcrImage(from: canvas.drawing, rect: rect)
     }
 
     /// 「✎LaTeXに」= OCR を介さず空の確認カードを開いて手入力させる。

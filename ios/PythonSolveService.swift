@@ -13,12 +13,16 @@ struct PythonSolveService: SolveService {
         }
         let supported = obj["supported"] as? Bool ?? false
         guard supported else { return .unsupported }
+        // mathai が返す steps_latex([{label, latex}, …]) を拾う(今まで捨てていた)。
+        let rawSteps = obj["steps_latex"] as? [[String: String]] ?? []
+        let stepsLatex = rawSteps.map { StepLatex(label: $0["label"] ?? "", latex: $0["latex"] ?? "") }
         return SolveResult(
             supported: true,
             kind: obj["kind"] as? String ?? "",
             steps: obj["steps"] as? [String] ?? [],
             answer: obj["answer"] as? [String] ?? [],
             answerLatex: obj["answer_latex"] as? [String] ?? [],
+            stepsLatex: stepsLatex,
             verified: obj["verified"] as? Bool ?? false
         )
     }
