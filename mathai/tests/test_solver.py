@@ -68,3 +68,15 @@ def test_trig_equation_in_theta_is_solved():
     r = solve_equation("2*sin(theta) = 1")
     assert r["kind"] == "trigonometric"
     assert set(r["answer"]) == {"pi/6", "5*pi/6"}
+
+
+def test_answer_latex_renders_as_fraction():
+    # 表示用に縦分数の LaTeX を返す
+    r = solve_equation("1/2 + 1/3")
+    assert r["answer_latex"] == ["\\frac{5}{6}"]
+
+
+def test_steps_latex_have_label_and_latex():
+    r = solve_equation("2x + 3 = 7")
+    assert r["steps_latex"]
+    assert all("label" in s and "latex" in s for s in r["steps_latex"])

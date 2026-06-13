@@ -93,13 +93,26 @@ export default function App() {
 function Result({ r }) {
   if (!r.supported)
     return <p style={{ color: '#b00020' }}>⚠️ この式は解けません（対応外/認識ミス）。上の欄で直して「解く」を押してください。</p>
+  const steps = r.steps_latex && r.steps_latex.length ? r.steps_latex : null
+  const ans = r.answer_latex && r.answer_latex.length ? r.answer_latex : null
   return (
     <div style={{ marginTop: 6 }}>
       <div style={label}>種別: {r.kind}</div>
-      <ol style={{ margin: '6px 0', paddingLeft: '1.3em', lineHeight: 1.7 }}>
-        {r.steps.map((s, i) => <li key={i}>{s}</li>)}
+      <ol style={{ margin: '6px 0', paddingLeft: '1.3em', lineHeight: 2 }}>
+        {steps
+          ? steps.map((s, i) => (
+              <li key={i}>{s.label}{s.latex ? <>: <Tex tex={s.latex} /></> : null}</li>
+            ))
+          : r.steps.map((s, i) => <li key={i}>{s}</li>)}
       </ol>
-      <div style={{ fontWeight: 700, fontSize: 20 }}>答え: {r.answer.join(', ')}</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 8, flexWrap: 'wrap' }}>
+        <span style={{ fontWeight: 700, fontSize: 18 }}>答え</span>
+        <span style={{ fontSize: 24 }}>
+          {ans
+            ? ans.map((a, i) => <span key={i} style={{ marginRight: 14 }}><Tex tex={a} /></span>)
+            : r.answer.join(', ')}
+        </span>
+      </div>
     </div>
   )
 }
