@@ -18,6 +18,7 @@ struct PythonSolveService: SolveService {
             kind: obj["kind"] as? String ?? "",
             steps: obj["steps"] as? [String] ?? [],
             answer: obj["answer"] as? [String] ?? [],
+            answerLatex: obj["answer_latex"] as? [String] ?? [],
             verified: obj["verified"] as? Bool ?? false
         )
     }

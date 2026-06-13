@@ -8,6 +8,7 @@ struct SolveResult {
     let kind: String          // linear / quadratic / inequality / system / evaluate / ...
     let steps: [String]
     let answer: [String]
+    var answerLatex: [String] = []   // 答えの LaTeX 形(SwiftMath で数式描画する)
     var verified: Bool = false   // 検算（代入/サンプル点）で成立を確認したか
 
     static let unsupported = SolveResult(supported: false, kind: "unknown", steps: [], answer: [])

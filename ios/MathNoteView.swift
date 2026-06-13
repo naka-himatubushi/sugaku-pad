@@ -543,9 +543,14 @@ struct ResultCard: View {
                 }
                 .buttonStyle(.plain)
             }
-            Text(card.result.answer.map(MathDisplay.pretty).joined(separator: ",  "))
-                .font(.headline)
-                .foregroundStyle(.primary)
+            if !card.result.answerLatex.isEmpty {
+                MathView(latex: card.result.answerLatex.joined(separator: ",\\ "), fontSize: 20)
+                    .frame(minHeight: 26, alignment: .leading)
+            } else {
+                Text(card.result.answer.map(MathDisplay.pretty).joined(separator: ",  "))
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+            }
         }
         .padding(10)
         .frame(maxWidth: 220, alignment: .leading)

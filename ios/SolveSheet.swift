@@ -65,8 +65,15 @@ struct ConfirmCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("認識結果(編集して確認)")
+            Text("認識結果(確認して、必要なら直す)")
                 .font(.caption).foregroundStyle(.secondary)
+            // 読みやすい数式プレビュー(SwiftMath = KaTeX 相当)。生 LaTeX は下の欄で編集。
+            if MathView.renderable(latex) {
+                MathView(latex: latex, fontSize: 28)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 4)
+            }
             HStack(spacing: 10) {
                 TextField("数式 または LaTeX", text: $latex)
                     .textFieldStyle(.roundedBorder)
@@ -125,10 +132,16 @@ struct SolveResultPanel: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("答え")
                         .font(.caption).foregroundStyle(.secondary)
-                    HStack(alignment: .firstTextBaseline, spacing: 10) {
-                        Text(prettyAnswer)
-                            .font(.title2.bold())
-                            .textSelection(.enabled)
+                    HStack(alignment: .center, spacing: 10) {
+                        // 答えを数式描画(SwiftMath)。LaTeX が無ければ整形テキストに fallback。
+                        if !result.answerLatex.isEmpty {
+                            MathView(latex: result.answerLatex.joined(separator: ",\\ "), fontSize: 30)
+                                .frame(minHeight: 38, alignment: .leading)
+                        } else {
+                            Text(prettyAnswer)
+                                .font(.title2.bold())
+                                .textSelection(.enabled)
+                        }
                         Button {
                             UIPasteboard.general.string = result.answer.joined(separator: ", ")
                         } label: { Image(systemName: "doc.on.doc") }
