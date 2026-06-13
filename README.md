@@ -70,6 +70,36 @@ flowchart LR
 - **② 確認（紫）**: 誤認識をワンタップ修正＝“最後の数%”の保険
 - **③ 計算＋検算（青）**: SymPy で求解し、**答えを元の式に代入して検証**（`verified`）。間違いは弾ける
 
+### 計算コア（`mathai`）の中身
+
+決定的な計算層の内部。`=` の有無で方程式/式に分け、種別ごとに SymPy で解いて**検算**する。
+
+```mermaid
+flowchart TD
+    IN["LaTeX 入力<br/>(OCR出力 / テキスト)"] --> NORM["LaTeX入力層<br/>暗黙の掛け算・frac/sqrt/三角<br/>デリミタ除去・変数判定"]
+    NORM --> Q{"= がある?"}
+    Q -->|"あり（方程式）"| EQ{"種別"}
+    EQ -->|"1次"| L["線形<br/>移項→両辺を割る"]
+    EQ -->|"2次"| QD["二次<br/>因数分解→各因子=0"]
+    EQ -->|"三角を含む"| TR["三角<br/>三角方程式として解く"]
+    Q -->|"なし（式）"| EX{"形は?"}
+    EX -->|"数値"| NU["評価<br/>nsimplify"]
+    EX -->|"多項式(2次↑)"| PO["因数分解+=0の根"]
+    EX -->|"その他"| SI["簡約<br/>simplify"]
+    L --> SOL["解 / 結果"]
+    QD --> SOL
+    TR --> SOL
+    NU --> SOL
+    PO --> SOL
+    SI --> SOL
+    SOL --> VF["検算レイヤー<br/>解を元の式に代入し<br/>SymPy で成立を確認"]
+    VF --> OUT(["出力: steps_latex /<br/>answer_latex / verified ✓"])
+    classDef det fill:#e8f0fe,stroke:#5b8def,color:#000;
+    classDef verify fill:#e3f6e8,stroke:#1aa64b,color:#000;
+    class NORM,L,QD,TR,NU,PO,SI,SOL det;
+    class VF,OUT verify;
+```
+
 ## 構成
 
 | ディレクトリ | 役割 |
