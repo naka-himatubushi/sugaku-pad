@@ -16,3 +16,6 @@ xcuserdata/
 # モデル重み・大容量成果物（評価用データセット画像は再現性のため追跡する）
 *.mlpackage/
 *.mlmodel
+
+# xcodegen 生成物（project.yml から再生成）
+*.xcodeproj/

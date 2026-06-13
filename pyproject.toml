@@ -1,0 +1,19 @@
+[project]
+name = "mathai"
+version = "0.1.0"
+description = "Goodnotes AI for Math クローンの計算コア（Solve の頭脳）"
+requires-python = ">=3.12"
+dependencies = ["sympy>=1.13"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mathai"]
+
+# OCR スパイク（pix2tex/torch）は python@3.13 の別 venv で管理する。
+# torch が python3.14 非対応のため本体依存には含めない。README 参照。

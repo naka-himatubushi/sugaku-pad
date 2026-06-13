@@ -1,0 +1,24 @@
+# xcodegen プロジェクト定義。`xcodegen generate` で MathAI.xcodeproj を生成する。
+# .xcodeproj は生成物なので git 管理せず、この project.yml と Swift ソースを管理する。
+name: MathAI
+options:
+  bundleIdPrefix: com.nakazawa
+  deploymentTarget:
+    iOS: "17.0"   # PencilKit は 13+。Foundation Models は実行時 @available(iOS 26) で分岐
+targets:
+  MathAI:
+    type: application
+    platform: iOS
+    sources:
+      - MathAI
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nakazawa.mathai
+        GENERATE_INFOPLIST_FILE: "YES"
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: "YES"
+        INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
+        TARGETED_DEVICE_FAMILY: "2"   # iPad
+        SWIFT_VERSION: "5.0"
+        CODE_SIGN_STYLE: Automatic
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
