@@ -39,13 +39,25 @@ def _ocr_latex(image_b64: str) -> str:
     resp = httpx.post(
         f"{_OLLAMA}/api/generate",
         json={"model": _OCR_MODEL, "prompt": _OCR_PROMPT,
-              "images": [image_b64], "stream": False, "options": {"temperature": 0}},
+              "images": [image_b64], "stream": False, "options": {"temperature": 0},
+              "keep_alive": "60m"},  # モデルを常駐させ冷えを防ぐ
         timeout=120,
     )
     text = resp.json().get("response", "").strip()
     for token in ("```latex", "```", "\\(", "\\)", "\\[", "\\]", "$$"):  # 囲み・デリミタ除去
         text = text.replace(token, "")
     return text.strip().strip("$").strip()
+
+
+@app.on_event("startup")
+def _warmup() -> None:
+    """起動時にモデルをメモリへ常駐させ、初回リクエストの冷え（~9s）を解消する。"""
+    try:
+        httpx.post(f"{_OLLAMA}/api/generate",
+                   json={"model": _OCR_MODEL, "prompt": "warmup", "stream": False, "keep_alive": "60m"},
+                   timeout=180)
+    except Exception:
+        pass
 
 
 class SolveRequest(BaseModel):
