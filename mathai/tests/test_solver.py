@@ -61,3 +61,10 @@ def test_trig_equation_is_classified_and_solved():
     r = solve_equation("sin(x) = 0")
     assert r["kind"] == "trigonometric"
     assert "0" in r["answer"]
+
+
+def test_trig_equation_in_theta_is_solved():
+    # 変数が θ（x ではない）でも解ける — PreCalc 三角の中心ケース
+    r = solve_equation("2*sin(theta) = 1")
+    assert r["kind"] == "trigonometric"
+    assert set(r["answer"]) == {"pi/6", "5*pi/6"}

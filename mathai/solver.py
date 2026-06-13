@@ -30,40 +30,54 @@ def _parse(s: str):
     return parse_expr(s, transformations=_TRANSFORMS, local_dict=_LOCALS)
 
 
+def _pick_var(expr):
+    """解く対象の変数を選ぶ。x を優先、次に theta、無ければ最初の自由変数。"""
+    free = expr.free_symbols
+    if x in free:
+        return x
+    theta = sp.Symbol("theta")
+    if theta in free:
+        return theta
+    if free:
+        return sorted(free, key=str)[0]
+    return x
+
+
 def solve_equation(expr: str) -> dict:
     expr = expr.strip()
     try:
         if "=" in expr:
             lhs_s, rhs_s = expr.split("=", 1)
             lhs, rhs = _parse(lhs_s), _parse(rhs_s)
-            sols = sp.solve(sp.Eq(lhs, rhs), x)
+            poly = sp.expand(lhs - rhs)
+            var = _pick_var(poly)
+            sols = sp.solve(sp.Eq(lhs, rhs), var)
             if not sols:
                 return {"supported": False, "kind": "equation", "steps": [], "answer": []}
 
-            poly = sp.expand(lhs - rhs)
             steps = [f"方程式: {lhs} = {rhs}"]
             kind = "equation"
 
             trig_funcs = (sp.sin, sp.cos, sp.tan, sp.cot, sp.sec, sp.csc)
             if any(poly.has(f) for f in trig_funcs):
                 kind = "trigonometric"
-                steps.append("三角方程式として x を解く")
+                steps.append(f"三角方程式として {var} を解く")
             else:
                 try:
-                    degree = sp.Poly(poly, x).degree()
+                    degree = sp.Poly(poly, var).degree()
                 except sp.PolynomialError:
                     degree = None
                 if degree == 1:
                     kind = "linear"
-                    a, c = poly.coeff(x, 1), poly.coeff(x, 0)
-                    steps.append(f"x の項をまとめる: {a}*x = {-c}")
-                    steps.append(f"両辺を {a} で割る → x = {sols[0]}")
+                    a, c = poly.coeff(var, 1), poly.coeff(var, 0)
+                    steps.append(f"{var} の項をまとめる: {a}*{var} = {-c}")
+                    steps.append(f"両辺を {a} で割る → {var} = {sols[0]}")
                 elif degree == 2:
                     kind = "quadratic"
                     steps.append(f"因数分解: {sp.factor(poly)} = 0")
-                    steps.append(f"各因子を 0 にする → x = {', '.join(str(s) for s in sols)}")
+                    steps.append(f"各因子を 0 にする → {var} = {', '.join(str(s) for s in sols)}")
 
-            steps.append(f"解: x = {', '.join(str(s) for s in sols)}")
+            steps.append(f"解: {var} = {', '.join(str(s) for s in sols)}")
             return {"supported": True, "kind": kind, "steps": steps,
                     "answer": [str(s) for s in sols]}
 

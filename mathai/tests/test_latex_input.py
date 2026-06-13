@@ -55,3 +55,9 @@ def test_solve_latex_factored_form():
 def test_solve_latex_trig_identity_expression():
     r = solve_latex("\\sin^2\\theta + \\cos^2\\theta")
     assert r["answer"] == ["1"]
+
+
+def test_solve_latex_trig_equation_in_theta():
+    r = solve_latex("2\\sin\\theta = 1")
+    assert r["kind"] == "trigonometric"
+    assert set(r["answer"]) == {"pi/6", "5*pi/6"}
