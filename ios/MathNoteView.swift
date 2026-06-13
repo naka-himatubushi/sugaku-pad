@@ -201,8 +201,8 @@ struct MathNoteView: View {
         let drawingBounds = canvas.drawing.bounds
         let intersection = rect.intersection(drawingBounds)
         let target = intersection.isNull || intersection.isEmpty ? rect : intersection
-        // drawing.image(from:) は drawing 絶対座標を期待する(target はその座標系)。
-        let image = canvas.drawing.image(from: target, scale: 3.0)
+        // OCR 用に黒字・白地へ正規化(ペン色が薄い/白でも確実に認識させる)。
+        let image = ocrImage(rect: target)
         guard imageHasContent(image) else {
             model.errorText = "囲んだ範囲に手書きが見つかりませんでした"
             return
@@ -220,7 +220,7 @@ struct MathNoteView: View {
             return
         }
         let rect = bounds.insetBy(dx: -24, dy: -24)
-        let image = canvas.drawing.image(from: rect, scale: 3.0)
+        let image = ocrImage(rect: rect)
         guard imageHasContent(image) else {
             model.errorText = "手書きが見つかりませんでした"
             return
@@ -231,6 +231,30 @@ struct MathNoteView: View {
     /// 画像が空(サイズゼロ)でないかの最小チェック。極小/空画像を OCR 前に弾く。
     private func imageHasContent(_ image: UIImage) -> Bool {
         image.size.width >= 1 && image.size.height >= 1
+    }
+
+    /// OCR 用画像を作る。全ストロークを黒に塗り替え、白い背景に合成する。
+    /// ペン色が白/薄い色でも「黒字・白地」になり、OCR が確実に読める(表示色とは独立)。
+    /// OCR 用画像を作る。手書きを「黒字・白地」に正規化して認識精度を担保する。
+    /// 2段構え: ①全ストロークを黒に塗り替え(ペンが何色でも黒で渡す)
+    ///          ②.light トレイトで描画(PencilKit がダーク文脈で黒インクを白へ自動反転する罠を回避)
+    ///          ③白背景に合成(透明を無くし黒字白地に)。
+    private func ocrImage(rect: CGRect) -> UIImage {
+        let blackStrokes = canvas.drawing.strokes.map { s -> PKStroke in
+            var ns = s
+            ns.ink = PKInk(s.ink.inkType, color: .black)
+            return ns
+        }
+        var strokeImg = UIImage()
+        UITraitCollection(userInterfaceStyle: .light).performAsCurrent {
+            strokeImg = PKDrawing(strokes: blackStrokes).image(from: rect, scale: 3.0)
+        }
+        let renderer = UIGraphicsImageRenderer(size: strokeImg.size)
+        return renderer.image { ctx in
+            UIColor.white.setFill()
+            ctx.fill(CGRect(origin: .zero, size: strokeImg.size))
+            strokeImg.draw(at: .zero)
+        }
     }
 
     /// 「✎LaTeXに」= OCR を介さず空の確認カードを開いて手入力させる。
@@ -285,6 +309,8 @@ struct NoteCanvas: UIViewRepresentable {
             picker.setVisible(true, forFirstResponder: uiView)
             picker.addObserver(uiView)
             uiView.becomeFirstResponder()
+            // 既定ペンを黒に固定(白い用紙で見えるように。パレット確立後に上書き)。
+            uiView.tool = PKInkingTool(.pen, color: .black, width: 4)
         }
 
         // 確立済みなら、投げ縄モードに応じてパレット表示を出し分ける。

@@ -6,6 +6,10 @@
 // 重い処理(OCR / Python 初期化)は async/await + Task.detached でバックグラウンド化し UI を止めない。
 import SwiftUI
 import PencilKit
+import OSLog
+
+// 診断用ログ。手書き画像の保存先と OCR/求解の結果を os_log に出し、Mac から idevicesyslog で拾う。
+private let noteLog = Logger(subsystem: "com.nakazawa.mathai", category: "note")
 
 /// 結果ボトムシートを driving する Identifiable セッション。
 /// 認識した LaTeX と求解結果(まだ計算中なら nil)を 1 組で持つ。
@@ -74,6 +78,7 @@ final class MathNoteModel {
         do {
             let latex = try await ocr.recognize(image)
             let cleaned = latex.trimmingCharacters(in: .whitespacesAndNewlines)
+            noteLog.notice("NOTE-OCR latex=\(cleaned, privacy: .public)")
             guard !cleaned.isEmpty else {
                 // 認識空: 確認カードに空で出し、人手入力に逃がす(行き止まりを作らない)。
                 session = SolveSession(latex: "", result: nil)
@@ -96,6 +101,7 @@ final class MathNoteModel {
         // 初回 Python 初期化が重いのでバックグラウンドへ退避(ContentView 既存作法踏襲)。
         let solverRef = solver
         let r = await Task.detached(priority: .userInitiated) { solverRef.solve(expr) }.value
+        noteLog.notice("NOTE-SOLVE in=\(expr, privacy: .public) supported=\(r.supported) kind=\(r.kind, privacy: .public) answer=\(r.answer.joined(separator: "|"), privacy: .public) verified=\(r.verified)")
         session = SolveSession(latex: expr, result: r)
         phase = .idle
     }
