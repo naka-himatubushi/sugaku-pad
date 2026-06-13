@@ -65,6 +65,9 @@ static BOOL gReady = NO;
         Py_DECREF(u);
     }
 
+    // 初期化スレッドが握っている GIL を解放。以降は任意スレッドから
+    // PyGILState_Ensure/Release で安全に呼べる（SwiftUI はバックグラウンドで呼ぶ）。
+    PyEval_SaveThread();
     gReady = YES;
     return YES;
 }
@@ -72,6 +75,8 @@ static BOOL gReady = NO;
 + (NSString *)solveJSON:(NSString *)latex {
     if (![self startup]) return @"{\"supported\":false,\"kind\":\"error\",\"error\":\"python init failed\",\"steps\":[],\"answer\":[]}";
 
+    // 任意スレッドから安全に Python を呼ぶため GIL を取得（戻りで解放）。
+    PyGILState_STATE gil = PyGILState_Ensure();
     NSString *out = @"{\"supported\":false,\"kind\":\"error\",\"error\":\"call failed\",\"steps\":[],\"answer\":[]}";
     PyObject *mod = PyImport_ImportModule("bridge");
     if (mod) {
@@ -94,6 +99,7 @@ static BOOL gReady = NO;
         PyErr_Print();
         out = @"{\"supported\":false,\"kind\":\"error\",\"error\":\"import bridge failed\",\"steps\":[],\"answer\":[]}";
     }
+    PyGILState_Release(gil);
     return out;
 }
 

@@ -19,8 +19,15 @@ struct SolveResultView: View {
                     }
                 }
                 Divider()
-                Text("答え: \(result.answer.joined(separator: ", "))")
-                    .font(.headline)
+                HStack(spacing: 8) {
+                    Text("答え: \(result.answer.joined(separator: ", "))")
+                        .font(.headline)
+                    if result.verified {
+                        Image(systemName: "checkmark.seal.fill")
+                            .foregroundStyle(.green)
+                            .help("検算で確認済み")
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }

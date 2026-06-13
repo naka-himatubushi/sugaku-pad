@@ -5,9 +5,10 @@ import Foundation
 
 struct SolveResult {
     let supported: Bool
-    let kind: String          // linear / quadratic / evaluate / trigonometric / ...
+    let kind: String          // linear / quadratic / inequality / system / evaluate / ...
     let steps: [String]
     let answer: [String]
+    var verified: Bool = false   // 検算（代入/サンプル点）で成立を確認したか
 
     static let unsupported = SolveResult(supported: false, kind: "unknown", steps: [], answer: [])
 }

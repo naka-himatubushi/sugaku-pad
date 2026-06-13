@@ -7,7 +7,8 @@ struct ContentView: View {
     @State private var canvas = PKCanvasView()
     @State private var input = "2x + 3 = 7"
     @State private var result: SolveResult?
-    private let service: SolveService = MockSolveService()
+    @State private var solving = false
+    private let service = PythonSolveService()   // 端末内 Python(mathai+SymPy) で解く
 
     var body: some View {
         NavigationStack {
@@ -26,8 +27,19 @@ struct ContentView: View {
                         TextField("数式 または LaTeX", text: $input)
                             .textFieldStyle(.roundedBorder)
                             .font(.title3)
-                        Button("Solve") { result = service.solve(input) }
-                            .buttonStyle(.borderedProminent)
+                        Button(solving ? "計算中…" : "Solve") {
+                            let expr = input
+                            let svc = service
+                            solving = true
+                            Task {
+                                // 初回は Python 初期化で重いのでバックグラウンド実行
+                                let r = await Task.detached { svc.solve(expr) }.value
+                                result = r
+                                solving = false
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(solving)
                     }
                     .padding()
                     .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
