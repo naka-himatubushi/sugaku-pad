@@ -43,8 +43,9 @@ def _ocr_latex(image_b64: str) -> str:
         timeout=120,
     )
     text = resp.json().get("response", "").strip()
-    text = text.replace("```latex", "").replace("```", "").strip()  # 囲みを除去
-    return text.strip("$").strip()
+    for token in ("```latex", "```", "\\(", "\\)", "\\[", "\\]", "$$"):  # 囲み・デリミタ除去
+        text = text.replace(token, "")
+    return text.strip().strip("$").strip()
 
 
 class SolveRequest(BaseModel):
