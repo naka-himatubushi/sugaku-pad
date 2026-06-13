@@ -2,7 +2,8 @@
 
 - 日付: 2026-06-13
 - 問い: 認識(OCR)は MLX で端末内実行できた。**計算層(mathai/SymPy)も iPad 内で動くか？**
-- 結論: ✅ **シミュレータ(iOS ランタイム)で動作確認**。実機 framework 化は次段。
+- 結論: ✅ **実機(iPad Pro 13" M4)で動作確認済み**。`2x+3=7 → 答え 2 ✓` を端末内 Python で解いた。
+  C拡張(.so)のフレームワーク化も実機で正しく読み込まれ、dyld/署名エラーなし。
 
 ## 何をしたか
 
@@ -22,11 +23,13 @@
 
 → 一次・二次・**不等式・連立**＋**検算**まで、**端末内 Python で完全動作**。手順(steps_latex)・検算も込みで Mac と同一結果。
 
-## 重要な切り分け（正直に）
+## 実機化の壁と、その解決（2026-06-13 達成）
 
-- ✅ 検証は **iOS シミュレータ**（Mac の CPU で動く iOS ランタイム）。**実機(arm64)はまだ**。
-- ⚠️ **実機の壁 = lib-dynload の framework 化**。iOS 実機は dylib を framework 経由でしか読めず、C 拡張モジュール(.so)を1つずつ署名 framework に包む必要がある（Briefcase が自動化する領域）。シミュレータは .so 直読みが緩いので先に通った。
-- → 実機化は「① device スライスの dynload を framework 化 ② 署名 ③ 実機で容量・起動時間計測」が残タスク。SymPy が要る dynload は限定的なので現実的。
+- **壁 = lib-dynload の framework 化**。iOS 実機は dylib を framework 経由でしか読めず、C 拡張(.so)を1つずつ署名 framework に包む必要がある。
+- **解決 = 公式 `install_python` をビルドフェーズで呼ぶ**（`Python.xcframework/build/utils.sh`）。stdlib 配置＋68個の dynload を `*.framework`＋`.fwork` 化＋署名まで自動。手作業不要。
+  - 注意: `generic/platform=iOS Simulator` は ARCHS が二重(arm64 x86_64)になり `install_stdlib` が失敗。**具体機種シミュレータ or 実機(単一 arm64)**でビルドする。
+- **実機 run 手順**: `xcodebuild -destination 'generic/platform=iOS' DEVELOPMENT_TEAM=… -allowProvisioningUpdates build`（68 framework を本署名）→ `devicectl device install/launch`。
+- **結果**: iPad Pro M4 実機で `2x+3=7 → 2 ✓`。dyld/署名/import エラーなし。**計算層オンデバイス成立**。
 
 ## 再現
 
