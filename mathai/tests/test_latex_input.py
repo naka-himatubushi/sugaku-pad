@@ -61,3 +61,19 @@ def test_solve_latex_trig_equation_in_theta():
     r = solve_latex("2\\sin\\theta = 1")
     assert r["kind"] == "trigonometric"
     assert set(r["answer"]) == {"pi/6", "5*pi/6"}
+
+
+def test_strips_inline_math_delimiters():
+    # OCR が \( \) や \[ \] で囲んでも素の式に戻す（デリミタごと除去）
+    assert latex_to_math(r"\(x+1\)") == "x+1"
+    assert latex_to_math(r"\[x^{2}\]") == "x^(2)"
+
+
+def test_solve_latex_fraction_expression_simplifies():
+    # OCR 実例: \(\frac{2}{x^2-4}-\frac{1}{x^2+2x}\) = 1/(x^2-2x)
+    import sympy as sp
+    r = solve_latex(r"\(\frac{2}{x^2-4}-\frac{1}{x^2+2x}\)")
+    assert r["supported"] is True
+    x = sp.Symbol("x")
+    got = sp.sympify(r["answer"][0], locals={"x": x})
+    assert sp.simplify(got - 1 / (x**2 - 2 * x)) == 0

@@ -78,6 +78,8 @@ def _cleanup(s: str) -> str:
 def latex_to_math(latex: str) -> str:
     """LaTeX を SymPy 向けのゆるい数式文字列へ変換する。"""
     s = latex.lower()
+    for delim in ("\\(", "\\)", "\\[", "\\]", "$$", "$"):  # 数式デリミタ（OCRが付けがち）を除去
+        s = s.replace(delim, "")
     s = _strip_styling(s)
     for token, repl in _SYMBOLS.items():
         s = s.replace(token, repl)
