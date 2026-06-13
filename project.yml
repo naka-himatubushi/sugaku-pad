@@ -5,12 +5,28 @@ options:
   bundleIdPrefix: com.nakazawa
   deploymentTarget:
     iOS: "17.0"   # PencilKit は 13+。Foundation Models は実行時 @available(iOS 26) で分岐
+# MLX Swift（端末内 VLM 推論）。MLXVLM を含む最新タグ 2.29.1 にピン。
+# main は MLXVLM を別リポジトリ(mlx-swift-lm)へ移動済みのため使わない。
+packages:
+  mlx-swift-examples:
+    url: https://github.com/ml-explore/mlx-swift-examples
+    exactVersion: 2.29.1
+  mlx-swift:   # MLX 本体（GPU キャッシュ制御 import MLX 用）。2.29.1 が要求する 0.25.x に合わせる
+    url: https://github.com/ml-explore/mlx-swift
+    from: "0.25.5"
 targets:
   MathAI:
     type: application
     platform: iOS
     sources:
       - ios   # iOS アプリの Swift ソース（Python パッケージ mathai/ とは別ディレクトリ）
+    dependencies:
+      - package: mlx-swift-examples
+        product: MLXVLM
+      - package: mlx-swift-examples
+        product: MLXLMCommon
+      - package: mlx-swift
+        product: MLX
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.nakazawa.mathai

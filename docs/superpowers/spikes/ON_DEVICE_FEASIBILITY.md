@@ -39,4 +39,5 @@
 
 1. iPad RAM 確認（3B 既定 / 16GB なら 7B も可）
 2. ✅ **Mac で Qwen2.5-VL 3B / Gemma 4 E2B を手書きベンチ済**（[OCR_BENCHMARK.md](OCR_BENCHMARK.md)、3B が最小・最速・5/5 で第一候補）
-3. ネイティブ統合（MLXChatExample を土台に）→ **iPad 実機での速度・RAM 実測**
+3. ✅ **ネイティブ統合コード完成・iOS ビルド成功**（`ios/Spikes/MlxOcrBenchView.swift`、`Spike D: MLX ベンチ`）。MLXVLM で `VLMRegistry.qwen2_5VL3BInstruct4Bit` をロードし、ロード時間/cold・warm latency/tokens-s/phys_footprint/残メモリを画面計測。パッケージは `mlx-swift-examples 2.29.1` にピン。
+4. ⏳ **iPad 実機で速度・RAM 実測**（中沢さんの手作業: [MLX_ONDEVICE_RUNBOOK.md](MLX_ONDEVICE_RUNBOOK.md) の手順で接続→署名→Run→「ベンチ開始」）。シミュレータでは on-device の数字は取れない。
