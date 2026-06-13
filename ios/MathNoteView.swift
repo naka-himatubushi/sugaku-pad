@@ -254,6 +254,8 @@ struct NoteCanvas: UIViewRepresentable {
         canvas.drawingPolicy = model.pencilOnly ? .pencilOnly : .anyInput
         canvas.tool = PKInkingTool(.pen, color: .black, width: 4)   // 白い用紙に映える黒
         canvas.backgroundColor = .clear   // 背面の PaperBackground(白/方眼)を透かす
+        // 用紙は常に白なので、ダークモードでも黒インク既定＋白地向けの色パレットにする。
+        canvas.overrideUserInterfaceStyle = .light
         // 第一カット: ズーム/スクロールは封じる(投げ縄座標 = drawing 座標を保つため)。
         canvas.alwaysBounceVertical = false
         canvas.alwaysBounceHorizontal = false
@@ -263,7 +265,9 @@ struct NoteCanvas: UIViewRepresentable {
         canvas.bouncesZoom = false
         canvas.delegate = context.coordinator
         // picker は強参照で保持しないと解放されて消える。実際の表示確立は updateUIView で行う。
-        context.coordinator.picker = PKToolPicker()
+        let picker = PKToolPicker()
+        picker.colorUserInterfaceStyle = .light   // 白い用紙に合わせ、黒を既定にし黒を選べるように
+        context.coordinator.picker = picker
         return canvas
     }
 
