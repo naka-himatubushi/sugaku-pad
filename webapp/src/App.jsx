@@ -25,6 +25,22 @@ function Card({ children, accent }) {
   )
 }
 
+// 検算結果を表す簡易バッジアイコン（緑チェックのシール / 未検証は注意マーク）
+function VerifiedMark({ ok }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" role="img" aria-label={ok ? '検算済み' : '未検証'}>
+      <title>{ok ? '検算済み' : '未検証'}</title>
+      <circle cx="12" cy="12" r="11" fill={ok ? '#1aa64b' : '#c99a00'} />
+      {ok ? (
+        <path d="M6.8 12.4l3.3 3.3L17.3 8.8" fill="none" stroke="#fff"
+              strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+      ) : (
+        <text x="12" y="17" textAnchor="middle" fontSize="15" fontWeight="700" fill="#fff">!</text>
+      )}
+    </svg>
+  )
+}
+
 export default function App() {
   const [api, setApi] = useState(null)
   const [latex, setLatex] = useState('')
@@ -127,9 +143,7 @@ export default function App() {
             <Card accent>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={label}>答え</span>
-                {result.verified
-                  ? <span style={badgeOk}>✓ 検算済み</span>
-                  : <span style={badgeWarn}>未検証</span>}
+                <VerifiedMark ok={result.verified} />
               </div>
               <div style={center(26)}>
                 {ans
@@ -165,5 +179,3 @@ const center = (size) => ({ fontSize: size, margin: '6px 0', textAlign: 'center'
 const input = { width: '100%', boxSizing: 'border-box', fontSize: 16, padding: '9px 11px', border: '1px solid #c7c7cc', borderRadius: 10, margin: '6px 0' }
 const primary = { fontSize: 16, padding: '10px 18px', borderRadius: 11, border: 0, background: '#007aff', color: '#fff' }
 const sec = { fontSize: 15, padding: '9px 14px', borderRadius: 11, border: 0, background: '#e5e5ea', color: '#1d1d1f' }
-const badgeOk = { fontSize: 12, fontWeight: 600, color: '#0a7d28', background: '#e3f6e8', borderRadius: 8, padding: '2px 8px' }
-const badgeWarn = { fontSize: 12, fontWeight: 600, color: '#9a6700', background: '#fdf2d6', borderRadius: 8, padding: '2px 8px' }
