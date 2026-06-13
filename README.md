@@ -6,7 +6,8 @@
 ## 現状（2026-06-13）
 
 - ✅ **計算コア `mathai/`** … LaTeX 入力層 + SolveEngine（SymPy）。テスト 21 件 PASS
-- ✅ **OCR 検証** … pix2tex 印刷体ベースライン。end-to-end 求解 6/7 (85.7%)
+- ✅ **OCR 検証** … pix2tex 印刷体ベースライン。end-to-end 求解 6/7 (85.7%)。エンコーダ Core ML 変換成功
+- ✅ **Web ハーネス `web/`** … 手書き→OCR→確認→求解→ステップ表示を**通しで実行できる実物**（end-to-end テスト緑）。iPad Safari からも使える暫定デモ（ネイティブ版の置き換えではない）
 - ⏳ **iOS アプリ `ios/`** … Solve 本フロー（手書きキャンバス→確認カード→Solve→ステップ表示）+ 各 Spike 画面を実装済み。計算は `SolveService`（当面モック→Xcode 後に埋め込み mathai へ）。**実コンパイル/実機は Xcode 待ち**
 
 ## いますぐ試す（Xcode 不要）
@@ -17,6 +18,17 @@ python3 -m mathai "\frac{x}{2} + 1 = 4"  # LaTeX も可
 python3 -m mathai                         # 対話モード
 python3 -m pytest mathai -q               # テスト
 ```
+
+## Web ハーネスで手書きから解く（今すぐ・iPad Safari 可）
+
+全パイプライン（手書き→認識→確認→求解→ステップ）を通しで動かす実証兼デモ。ネイティブ版とは別物。
+```bash
+.venv/bin/uvicorn web.server:app --host 0.0.0.0 --port 8077
+#   Mac:  http://localhost:8077
+#   iPad（同一LAN）: http://192.168.11.9:8077   # Apple Pencil で手書き→「認識して解く」
+.venv/bin/python web/smoke_test.py    # end-to-end テスト（テキスト・θ・画像OCR）
+```
+（HTTP・LAN 内のみ。完全 on-device のネイティブ版は `ios/`＝Xcode 待ち。）
 
 ## iOS アプリ（Xcode 導入後）
 
