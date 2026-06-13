@@ -23,13 +23,13 @@ HERE = Path(__file__).parent / "handwriting_eval"
 PROMPT = ("You are a precise math OCR. Transcribe the handwritten math expression into ONE line "
           "of LaTeX. Output ONLY the LaTeX, no explanation, no dollar signs, no code fences.")
 
-# 8GB 候補を先に、参考(8bit/7B)を後に。存在しない/落ちるモデルはスキップ。
+# 第2ラウンド: 2.29.1 が依存追加なしで載せられる未試験候補 vs 現行ベスト 2B。
+# (1回目: 3B-4bit=e2e4/6, 2B-4bit=6/6, SmolVLM=1/6, 3B-8bit=2/6, 7B-4bit=6/6)
 MODELS = [
-    "mlx-community/Qwen2.5-VL-3B-Instruct-4bit",   # 現行オンデバイス(基準)
-    "mlx-community/Qwen2-VL-2B-Instruct-4bit",     # 軽量候補
-    "mlx-community/SmolVLM-Instruct-4bit",         # 最軽量候補
-    "mlx-community/Qwen2.5-VL-3B-Instruct-8bit",   # 3B を高精度量子化(8GB ギリ)
-    "mlx-community/Qwen2.5-VL-7B-Instruct-4bit",   # 参考(16GB機向け・good の基準)
+    "mlx-community/Qwen2-VL-2B-Instruct-4bit",           # 現行採用(基準・前回6/6)
+    "lmstudio-community/Qwen3-VL-4B-Instruct-MLX-4bit",  # 最新世代(期待大・~4B)
+    "mlx-community/gemma-3-4b-it-qat-4bit",              # Gemma3 4B
+    "mlx-community/paligemma-3b-mix-448-8bit",           # PaliGemma(OCR系)
 ]
 
 

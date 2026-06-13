@@ -75,13 +75,6 @@ final class MathNoteModel {
     func recognizeAndSolve(image: UIImage) async {
         errorText = nil
         phase = .recognizing
-        // 診断: OCR にかける画像(黒字白地)を保存。Mac から吸い出して精度を独立検証する。
-        if let data = image.pngData() {
-            let url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                .appendingPathComponent("last_scan.png")
-            try? data.write(to: url)
-            noteLog.notice("NOTE-SCAN \(url.path, privacy: .public)")
-        }
         do {
             let latex = try await ocr.recognize(image)
             let cleaned = latex.trimmingCharacters(in: .whitespacesAndNewlines)
