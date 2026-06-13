@@ -23,8 +23,8 @@ targets:
         excludes:
           - vendor
           - python-ios
-      # 埋め込み Python のペイロードをフォルダ参照でバンドル（構造を保持）
-      - { path: ios/python-ios/python, buildPhase: resources, type: folder }
+      # 自前コードと依存をフォルダ参照でバンドル（構造を保持）。
+      # python(標準ライブラリ) はビルド時に install_python が xcframework から配置する。
       - { path: ios/python-ios/app, buildPhase: resources, type: folder }
       - { path: ios/python-ios/app_packages, buildPhase: resources, type: folder }
     dependencies:
@@ -51,3 +51,11 @@ targets:
         CURRENT_PROJECT_VERSION: "1"
         SWIFT_OBJC_BRIDGING_HEADER: ios/Bridge/MathAI-Bridging-Header.h
         ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+    # 実機/シミュレータ向けに Python 標準ライブラリを配置し、C拡張(.so)を
+    # 署名フレームワーク化する公式スクリプト（BeeWare）。Copy Resources の後に走る。
+    postBuildScripts:
+      - name: "Install Python (stdlib + dynload→framework)"
+        script: |
+          set -e
+          source "$PROJECT_DIR/ios/vendor/python-apple-support/Python.xcframework/build/utils.sh"
+          install_python ios/vendor/python-apple-support/Python.xcframework app app_packages
