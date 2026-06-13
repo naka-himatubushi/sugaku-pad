@@ -34,7 +34,7 @@ iPad に手書きした数式を認識して解く、**オンデバイス志向*
 OCR が出す “癖のある” LaTeX を、決定的に解ける計算エンジンへ自分で設計した。
 
 - **LaTeX 入力層** … 暗黙の掛け算（`2x`→`2*x`）、`\frac` / `\sqrt` / `^{}` / 三角関数、数式デリミタ（`\( \)` 等）除去、**解く変数の自動判定**（`x` でも `θ` でも解ける）。
-- **SolveEngine** … 一次方程式 / 二次方程式（因数分解の手順付き）/ 式の簡約 / 三角方程式 を**分類**し、**教育的なステップ**で提示。
+- **SolveEngine** … 一次・二次方程式（因数分解の手順付き）/ 連立方程式 / 不等式（一次・二次）/ 三角方程式 / 式の簡約 を**分類**し、**教育的なステップ**で提示。
 - **テスト駆動**（25 ケース）。実データで出た認識の癖は回帰テスト化して堅牢化（例：`\(...\)` 付きの式が解けないバグを再現テスト→修正）。
 
 ### 3. オンデバイス化 — Apple Core AI の検証（クラウド / Ollama の代替）🔬
@@ -76,8 +76,11 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    IN["LaTeX 入力<br/>(OCR出力 / テキスト)"] --> NORM["LaTeX入力層<br/>暗黙の掛け算・frac/sqrt/三角<br/>デリミタ除去・変数判定"]
-    NORM --> Q{"= がある?"}
+    IN["LaTeX 入力<br/>(OCR出力 / テキスト)"] --> NORM["LaTeX入力層<br/>暗黙の掛け算・frac/sqrt/三角<br/>不等号・cases・デリミタ除去"]
+    NORM --> RT{"入力の形"}
+    RT -->|"複数式<br/>; / 改行 / cases"| SYS["連立<br/>solve→代入で検算"]
+    RT -->|"不等号<br/>&lt; &gt; ≤ ≥"| INQ["不等式(一次/二次)<br/>solveset(実数)→点サンプルで検算"]
+    RT -->|"単一の等式/式"| Q{"= がある?"}
     Q -->|"あり（方程式）"| EQ{"種別"}
     EQ -->|"1次"| L["線形<br/>移項→両辺を割る"]
     EQ -->|"2次"| QD["二次<br/>因数分解→各因子=0"]
@@ -86,13 +89,15 @@ flowchart TD
     EX -->|"数値"| NU["評価<br/>nsimplify"]
     EX -->|"多項式(2次↑)"| PO["因数分解+=0の根"]
     EX -->|"その他"| SI["簡約<br/>simplify"]
-    L --> SOL["解 / 結果"]
+    SYS --> SOL["解 / 結果"]
+    INQ --> SOL
+    L --> SOL
     QD --> SOL
     TR --> SOL
     NU --> SOL
     PO --> SOL
     SI --> SOL
-    SOL --> VF["検算レイヤー<br/>解を元の式に代入し<br/>SymPy で成立を確認"]
+    SOL --> VF["検算レイヤー<br/>代入 / サンプル点で<br/>SymPy が成立を確認"]
     VF --> OUT(["出力: steps_latex /<br/>answer_latex / verified ✓"])
     classDef det fill:#e8f0fe,stroke:#5b8def,color:#000;
     classDef verify fill:#e3f6e8,stroke:#1aa64b,color:#000;

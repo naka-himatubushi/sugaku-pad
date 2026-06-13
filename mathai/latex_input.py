@@ -18,8 +18,9 @@ _STYLE_TOKENS = [
     r"\quad", r"\qquad", r"\displaystyle", r"\scriptstyle", r"\textstyle",
 ]
 
-# ギリシャ文字・定数・演算子の置換
+# ギリシャ文字・定数・演算子の置換。不等号は長いトークンを先に（\leq を \le より先に）。
 _SYMBOLS = {
+    r"\leq": "<=", r"\geq": ">=", r"\le": "<=", r"\ge": ">=", r"\lt": "<", r"\gt": ">",
     r"\theta": "theta", r"\pi": "pi", r"\alpha": "alpha", r"\beta": "beta",
     r"\cdot": "*", r"\times": "*", r"\div": "/",
 }
@@ -80,6 +81,9 @@ def latex_to_math(latex: str) -> str:
     s = latex.lower()
     for delim in ("\\(", "\\)", "\\[", "\\]", "$$", "$"):  # 数式デリミタ（OCRが付けがち）を除去
         s = s.replace(delim, "")
+    # 連立（cases 環境）: 枠を外し、行区切り \\ を連立セパレータ ; に、整列 & を除去
+    s = s.replace(r"\begin{cases}", "").replace(r"\end{cases}", "")
+    s = s.replace("\\\\", ";").replace("&", "")
     s = _strip_styling(s)
     for token, repl in _SYMBOLS.items():
         s = s.replace(token, repl)
