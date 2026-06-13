@@ -39,6 +39,32 @@
 - **初回 DL ~3.2GB**: ストレージとギガに注意。
 - mlx-swift / mlx-swift-examples は更新が速い → 本リポジトリは **mlx-swift-examples 2.29.1 にピン**（MLXVLM を含む最後系。main は別リポジトリへ分離済み）。
 
+## Mac から iPad のログを読む（開発の常設手段）
+
+実機の出力を Mac で監視したい時（sudo 不要）:
+
+```bash
+brew install libimobiledevice        # 初回のみ
+dev/ipad-logs.sh MLX-BENCH           # ベンチ結果(MLX-BENCH-RESULT 行)だけ流す
+dev/ipad-logs.sh                     # MathAI の全ログを流す
+```
+
+- 仕組み: `idevicesyslog -u <UDID> -p MathAI`（libimobiledevice）で os_log を拾う。
+- `Apple 純正 log stream/collect` はデバイス相手だと **sudo 必須**なので避け、こちらを既定にする。
+- Xcode で ▶Run 中なら Xcode 下部コンソールにも os_log は出る（デバッグ時はそれが手軽）。
+- 2026-06-13 実測はこの方法で `MLX-BENCH-RESULT` 行を自動回収した。
+
+## 実機実測 結果（2026-06-13, iPad Pro M4 8GB）
+
+| 指標 | 値 |
+|---|---|
+| warm latency | 約 2.38s |
+| RAM ピーク | 約 3.2GB（残 ~1.96GB） |
+| 生成スループット | 約 55 tok/s |
+| 認識 | `2x+19=9` ✓ |
+
+→ **8GB iPad でオンデバイス成立**。詳細・解釈は [OCR_BENCHMARK.md](OCR_BENCHMARK.md)。
+
 ## 数字が取れたら
 
 - `OCR_BENCHMARK.md` / `ON_DEVICE_FEASIBILITY.md` に **iPad 実機の速度・RAM** を追記し、Mac 実測と並べる。

@@ -59,6 +59,35 @@
 - **16GB（iPad Pro M 系上位）→ 3B で余裕、精度マージンが欲しければ 7B も選択可**。
 - いずれも MLX Swift（`VLMRegistry.qwen2_5VL3BInstruct4Bit`）で端末内実行可（[ON_DEVICE_FEASIBILITY.md](ON_DEVICE_FEASIBILITY.md)）。
 
+## iPad 実機 実測（2026-06-13 追記）— オンデバイスの本命検証
+
+- 端末: **iPad Pro 13" M4（iPad16,5, 8GB モデル）**
+- 実行: `ios/` アプリ `Spike D: MLX ベンチ`（MLXVLM, `Qwen2.5-VL 3B 4bit`）を実機で 2 回計測
+- 計測値は os_log の `MLX-BENCH-RESULT` 行を Mac から `idevicesyslog` で自動回収
+
+| 指標 | 実測（2回平均） |
+|---|---|
+| モデルロード（キャッシュ後） | 約 7.0s |
+| cold latency | 約 2.5s |
+| **warm latency** | **約 2.38s** |
+| 生成スループット | 約 55 tok/s |
+| **RAM ピーク** | **約 3.2GB**（ロード後 ~3.1GB） |
+| 残メモリ余裕 | 約 1.96GB |
+| 認識結果 | `2x+19=9` ✓（正解） |
+
+### 解釈（正直に）
+
+- ✅ **オンデバイスは成立**。iPad 内だけで手書きを正しく認識（`2x+19=9`）。最終目標＝端末内完結を実機で実証。
+- ✅ **8GB iPad に収まる**。ピーク 3.2GB、残 ~1.96GB → 8GB の Pro 最廉価構成でも余裕あり（[ON_DEVICE_FEASIBILITY.md](ON_DEVICE_FEASIBILITY.md) の見立てを実機で裏取り）。
+- ⚠️ **速度は Mac/クラウドより遅い**: iPad warm **2.38s** vs Mac(Ollama) 0.23s ＝ **約 10 倍**。要因は画像の vision encoder 処理。瞬時ではないが「タップ→認識」+確認カード UX なら実用域。初回のみモデル DL ~3.2GB。
+- ⚠️ サンプルは 1 種（短い一次式）。長い式・多トークンでは latency が伸びる見込み → 今後 latency×式長を計測予定。
+
+### 速度を詰める余地（次の研究）
+
+- 画像解像度を絞る（現状 1024px リサイズ）／プロンプト短縮でプリフィル削減。
+- より小さい VLM（SmolVLM, Qwen2-VL 2B）で latency↓ を測り精度とのトレードオフを見る。
+- 量子化（4bit→3bit 等）や KV キャッシュ調整。
+
 ## 面談での語り方
 
 「ローカル LLM の手書き認識を**自分の実データで定量評価**（初期 5/5）。印刷用 OCR では破綻することも実測。完璧でない前提で**確認＋検算の二層**を入れて実用化した」= 計測に基づく設計判断。
