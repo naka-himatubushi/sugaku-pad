@@ -89,3 +89,12 @@ def test_bare_quadratic_expression_is_factored_with_roots():
     assert r["kind"] == "polynomial"
     joined = " ".join(s["latex"] for s in r["steps_latex"])
     assert "-1" in joined and "\\frac{5}{2}" in joined  # 根 x=-1, 5/2 が手順に出る
+
+
+def test_solutions_are_verified_by_substitution():
+    # 検算レイヤー: 解を元の式に代入して成立を確認
+    assert solve_equation("2x + 19 = 9")["verified"] is True
+    assert solve_equation("x**2 - 5*x + 6 = 0")["verified"] is True
+    assert solve_equation("2x^2 - 3x - 5")["verified"] is True       # 多項式（展開一致）
+    assert solve_equation("1/2 + 1/3")["verified"] is True            # 数値
+    assert solve_equation("2/(x^2-4) - 1/(x^2+2x)")["verified"] is True  # 簡約

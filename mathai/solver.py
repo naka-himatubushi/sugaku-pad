@@ -62,7 +62,7 @@ def _csv(items, fn) -> str:
     return ", ".join(fn(i) for i in items)
 
 
-def _result(supported, kind, struct, answer, answer_latex) -> dict:
+def _result(supported, kind, struct, answer, answer_latex, verified=False) -> dict:
     return {
         "supported": supported,
         "kind": kind,
@@ -70,7 +70,16 @@ def _result(supported, kind, struct, answer, answer_latex) -> dict:
         "steps_latex": [{"label": s["label"], "latex": s["latex"]} for s in struct],
         "answer": answer,
         "answer_latex": answer_latex,
+        "verified": verified,  # 解を元の式に代入して成立を確認したか（検算レイヤー）
     }
+
+
+def _verify_zero(expr, var, sols) -> bool:
+    """各解を expr に代入して 0 になるか（=元の式を満たすか）を確認する。"""
+    try:
+        return bool(sols) and all(sp.simplify(expr.subs(var, s)) == 0 for s in sols)
+    except Exception:
+        return False
 
 
 def solve_equation(expr: str) -> dict:
@@ -115,7 +124,16 @@ def solve_equation(expr: str) -> dict:
 
             struct.append(_step("解", f"{sp.latex(var)} = {_csv(sols, sp.latex)}",
                                 f"{var} = {_csv(sols, str)}"))
-            return _result(True, kind, struct, [str(s) for s in sols], [sp.latex(s) for s in sols])
+
+            # 検算: 各解を元の式に代入して両辺一致を確認
+            verified = _verify_zero(lhs - rhs, var, sols)
+            checks = [f"{sp.latex(var)}={sp.latex(s)}:\\ {sp.latex(lhs.subs(var, s))} = {sp.latex(rhs.subs(var, s))}"
+                      for s in sols]
+            struct.append(_step("検算（代入して確認）", ",\\quad ".join(checks),
+                                "代入して両辺一致" if verified else "確認できず"))
+
+            return _result(True, kind, struct, [str(s) for s in sols],
+                           [sp.latex(s) for s in sols], verified)
 
         # "=" を含まない式
         val = _parse(expr)
@@ -125,7 +143,8 @@ def solve_equation(expr: str) -> dict:
             result = sp.nsimplify(val)
             struct = [_step("式", sp.latex(val), str(val)),
                       _step("計算", sp.latex(result), str(result))]
-            return _result(True, "evaluate", struct, [str(result)], [sp.latex(result)])
+            verified = bool(sp.simplify(val - result) == 0)
+            return _result(True, "evaluate", struct, [str(result)], [sp.latex(result)], verified)
 
         # 1 変数・2 次以上の多項式は因数分解 + =0 の根を出す（例: 2x^2-3x-5）
         var = _pick_var(val)
@@ -142,13 +161,19 @@ def solve_equation(expr: str) -> dict:
                 _step(f"{var} = 0 の解", f"{sp.latex(var)} = {_csv(roots, sp.latex)}",
                       f"{var} = {_csv(roots, str)}"),
             ]
-            return _result(True, "polynomial", struct, [str(factored)], [sp.latex(factored)])
+            # 検算: 展開して元の式に戻るか + 各根で 0 になるか
+            verified = (sp.expand(factored) - sp.expand(val) == 0) and _verify_zero(val, var, roots)
+            struct.append(_step("検算（展開して一致）",
+                                f"{sp.latex(sp.expand(factored))} = {sp.latex(sp.expand(val))}",
+                                "展開して元の式に一致" if verified else "確認できず"))
+            return _result(True, "polynomial", struct, [str(factored)], [sp.latex(factored)], verified)
 
         # それ以外は簡約（例: 2/(x^2-4)-1/(x^2+2x) → 1/(x(x-2))、恒等式 → 1）
         result = sp.simplify(val)
         struct = [_step("式", sp.latex(val), str(val)),
                   _step("計算", sp.latex(result), str(result))]
-        return _result(True, "evaluate", struct, [str(result)], [sp.latex(result)])
+        verified = bool(sp.simplify(val - result) == 0)
+        return _result(True, "evaluate", struct, [str(result)], [sp.latex(result)], verified)
 
     except Exception:
         return _result(False, "unknown", [], [], [])

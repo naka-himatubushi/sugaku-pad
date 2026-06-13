@@ -125,7 +125,12 @@ export default function App() {
                 ))
               : result.steps.map((s, i) => <Card key={i}>{s}</Card>)}
             <Card accent>
-              <div style={label}>答え</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={label}>答え</span>
+                {result.verified
+                  ? <span style={badgeOk}>✓ 検算済み</span>
+                  : <span style={badgeWarn}>未検証</span>}
+              </div>
               <div style={center(26)}>
                 {ans
                   ? ans.map((a, i) => <span key={i} style={{ margin: '0 10px' }}><Tex tex={a} /></span>)
@@ -160,3 +165,5 @@ const center = (size) => ({ fontSize: size, margin: '6px 0', textAlign: 'center'
 const input = { width: '100%', boxSizing: 'border-box', fontSize: 16, padding: '9px 11px', border: '1px solid #c7c7cc', borderRadius: 10, margin: '6px 0' }
 const primary = { fontSize: 16, padding: '10px 18px', borderRadius: 11, border: 0, background: '#007aff', color: '#fff' }
 const sec = { fontSize: 15, padding: '9px 14px', borderRadius: 11, border: 0, background: '#e5e5ea', color: '#1d1d1f' }
+const badgeOk = { fontSize: 12, fontWeight: 600, color: '#0a7d28', background: '#e3f6e8', borderRadius: 8, padding: '2px 8px' }
+const badgeWarn = { fontSize: 12, fontWeight: 600, color: '#9a6700', background: '#fdf2d6', borderRadius: 8, padding: '2px 8px' }
