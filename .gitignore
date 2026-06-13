@@ -25,3 +25,7 @@ web/captures/
 
 # 手書きセッションの一時基準マーカー
 spikes/solve/.session_baseline
+
+# 埋め込み Python（DL物・生成ペイロード。dev/ スクリプトで再生成）
+ios/vendor/
+ios/python-ios/

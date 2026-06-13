@@ -48,6 +48,7 @@ struct ContentView: View {
                         NavigationLink("Spike B: 計算", value: SpikeRoute.compute)
                         NavigationLink("Spike C: FM", value: SpikeRoute.foundationModel)
                         NavigationLink("Spike D: MLX ベンチ", value: SpikeRoute.mlxBench)
+                        NavigationLink("Spike E: Python 求解", value: SpikeRoute.pythonSolve)
                     }
                 }
             }
@@ -57,6 +58,7 @@ struct ContentView: View {
                 case .compute: ComputeSpikeView()
                 case .foundationModel: FoundationModelAvailabilityView()
                 case .mlxBench: MlxOcrBenchView()
+                case .pythonSolve: PythonSolveSpikeView()
                 }
             }
         }
@@ -64,5 +66,5 @@ struct ContentView: View {
 }
 
 enum SpikeRoute: Hashable {
-    case ocr, compute, foundationModel, mlxBench
+    case ocr, compute, foundationModel, mlxBench, pythonSolve
 }

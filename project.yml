@@ -19,7 +19,14 @@ targets:
     type: application
     platform: iOS
     sources:
-      - ios   # iOS アプリの Swift ソース（Python パッケージ mathai/ とは別ディレクトリ）
+      - path: ios   # iOS アプリの Swift/ObjC ソース。vendor(DL物) と python-ios(生成ペイロード) は除外
+        excludes:
+          - vendor
+          - python-ios
+      # 埋め込み Python のペイロードをフォルダ参照でバンドル（構造を保持）
+      - { path: ios/python-ios/python, buildPhase: resources, type: folder }
+      - { path: ios/python-ios/app, buildPhase: resources, type: folder }
+      - { path: ios/python-ios/app_packages, buildPhase: resources, type: folder }
     dependencies:
       - package: mlx-swift-examples
         product: MLXVLM
@@ -27,6 +34,10 @@ targets:
         product: MLXLMCommon
       - package: mlx-swift
         product: MLX
+      # 埋め込み CPython（BeeWare Python-Apple-support）。embed + 署名して同梱
+      - framework: ios/vendor/python-apple-support/Python.xcframework
+        embed: true
+        codeSign: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.nakazawa.mathai
@@ -38,3 +49,5 @@ targets:
         CODE_SIGN_STYLE: Automatic
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
+        SWIFT_OBJC_BRIDGING_HEADER: ios/Bridge/MathAI-Bridging-Header.h
+        ENABLE_USER_SCRIPT_SANDBOXING: "NO"
