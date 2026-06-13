@@ -9,14 +9,17 @@
 - VLM 実装が豊富（`MLXVLM/Models`）: **Qwen25VL / Qwen3VL / GlmOcr(OCR特化) / FastVLM / Gemma3 / SmolVLM2** 等 → 端末内 OCR の選択肢が複数ある。
 - **Core AI より現実的**: Core AI は iOS27 必須＋OCR向けVLM未提供だったが、**MLX Swift は今の iOS で動き、Qwen2.5-VL 実装がある**。
 
-## モデル footprint（実測 + 見積り）
+## モデル footprint + 精度（実測 2026-06-13）
 
-| モデル | サイズ(4bit) | 必要 iPad |
-|---|---|---|
-| Qwen2.5-VL **7B** | **5.3GB**（実測） | 16GB（Pro 系） |
-| Qwen2.5-VL **3B** | 約 2–2.5GB | 8GB でも可（公式 iOS 例もこれ） |
+3 候補を実手書き 5 問で横並び比較（詳細 = [OCR_BENCHMARK.md](OCR_BENCHMARK.md)）。
 
-→ **推奨 on-device モデル = Qwen2.5-VL 3B 4bit**（多くの iPad で動く・公式例と同一）。16GB 機なら 7B で精度↑も選択可。
+| モデル | params | 実体(Q4) | 手書き精度 | warm | 必要 iPad |
+|---|---|---|---|---|---|
+| **Qwen2.5-VL 3B** | 3.8B | **3.2GB** | 5/5 | **0.23s** | 8GB でも可（公式 iOS 例もこれ） |
+| Gemma 4 E2B | 5.1B | 7.2GB | 5/5 | 2.98s | 16GB 推奨（PLE 活用なら 8GB 余地） |
+| Qwen2.5-VL 7B | 7B | 6.0GB(Ollama)/5.3GB(MLX) | 5/5 | 0.26s | 16GB（Pro 系） |
+
+→ **推奨 on-device モデル = Qwen2.5-VL 3B 4bit**：精度は 3 種とも 5/5 で並ぶ中、**最小・最速**で 8GB iPad に最も無理なく載る（公式 iOS 例と同一）。Gemma 4 E2B は精度同等だが Ollama 実測で約 13 倍遅く実体も倍以上 → 16GB 機の精度マージン用に保留。16GB 機なら 7B で精度↑も選択可。
 
 ## 実装パス
 
@@ -27,13 +30,13 @@
 
 ## 残課題・リスク（正直に）
 
-- **iPad の RAM** 次第で 3B/7B が決まる（要確認）。
-- **3B の認識精度**は 7B（実手書き 5/5）より落ちる可能性 → **端末搭載前に Mac で 3B をベンチ**して見極めるべき。確認カード＋検算で残差は吸収。
-- 速度: iPad GPU は MacBook(7B warm 0.29s) より遅い見込み → 3B で実測要。
+- **iPad の RAM** 次第で 3B/7B が決まる（要確認）。8GB なら 3B 一択。
+- ✅ **3B の認識精度は Mac で検証済（実手書き 5/5、7B と同等）** → 落ちる懸念は払拭。確認カード＋検算で残差は吸収。
+- 速度: 上記は Mac（Ollama warm）の数値。**iPad GPU 上の実測はまだ**（MLX Swift 統合後に要計測）。
 - VLM on iOS は最先端領域（実例はあるが本番化は native 実装の工数がかかる）。
 
 ## 次の一手
 
 1. iPad RAM 確認（3B 既定 / 16GB なら 7B も可）
-2. **Mac で Qwen2.5-VL 3B を手書きベンチ**（端末搭載前の精度見極め）
-3. ネイティブ統合（MLXChatExample を土台に）
+2. ✅ **Mac で Qwen2.5-VL 3B / Gemma 4 E2B を手書きベンチ済**（[OCR_BENCHMARK.md](OCR_BENCHMARK.md)、3B が最小・最速・5/5 で第一候補）
+3. ネイティブ統合（MLXChatExample を土台に）→ **iPad 実機での速度・RAM 実測**

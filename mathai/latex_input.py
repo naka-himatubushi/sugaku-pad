@@ -83,8 +83,10 @@ def latex_to_math(latex: str) -> str:
     s = _strip_styling(s)
     for token, repl in _SYMBOLS.items():
         s = s.replace(token, repl)
-    s = _expand_frac_sqrt(s)
+    # caret を先に括弧化（x^{2}→x^(2)）して \frac{..}{x^{2}..} の入れ子波括弧を解消する。
+    # これをしないと分母の {2} で _expand_frac_sqrt の [^{}]* が詰まり分数が展開できない。
     s = _caret_braces(s)
+    s = _expand_frac_sqrt(s)
     s = _expand_trig(s)
     s = _cleanup(s)
     return s

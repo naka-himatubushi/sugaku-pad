@@ -7,6 +7,7 @@
 """
 import base64
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -16,8 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from mathai.solver import solve_latex
 
 HERE = Path(__file__).parent / "handwriting_eval"
-OLLAMA = "http://localhost:11434"
-MODEL = "qwen2.5vl:7b"
+OLLAMA = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+MODEL = os.environ.get("OCR_MODEL", "qwen2.5vl:7b")  # OCR_MODEL=gemma4:e2b 等で切替
 PROMPT = ("You are a precise math OCR. Transcribe the handwritten math expression into ONE line "
           "of LaTeX. Output ONLY the LaTeX, no explanation, no dollar signs, no code fences.")
 
