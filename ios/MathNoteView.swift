@@ -97,6 +97,7 @@ struct MathNoteView: View {
                 case .foundationModel: FoundationModelAvailabilityView()
                 case .mlxBench: MlxOcrBenchView()
                 case .pythonSolve: PythonSolveSpikeView()
+                case .techBook: TechBookView()
                 }
             }
             .sheet(item: $model.session, onDismiss: { model.clearSelection() }) { session in
@@ -378,6 +379,9 @@ struct FloatingActionBar: View {
                 }
                 Toggle(isOn: $model.pencilOnly) {
                     Label("Apple Pencil のみ(手のひら防止)", systemImage: "pencil.tip")
+                }
+                NavigationLink(value: SpikeRoute.techBook) {
+                    Label("技術書を読む", systemImage: "book")
                 }
                 Section("検証(開発用)") {
                     NavigationLink(value: SpikeRoute.ocr) { Label("Spike A: OCR", systemImage: "a.circle") }

@@ -12,5 +12,5 @@ struct ContentView: View {
 /// 検証用 Spike 画面への遷移ルート。FloatingActionBar の「…」メニューと
 /// MathNoteView の navigationDestination で使う。
 enum SpikeRoute: Hashable {
-    case ocr, compute, foundationModel, mlxBench, pythonSolve
+    case ocr, compute, foundationModel, mlxBench, pythonSolve, techBook
 }
