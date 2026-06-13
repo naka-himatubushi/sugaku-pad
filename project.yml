@@ -10,7 +10,7 @@ targets:
     type: application
     platform: iOS
     sources:
-      - MathAI
+      - ios   # iOS アプリの Swift ソース（Python パッケージ mathai/ とは別ディレクトリ）
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.nakazawa.mathai
