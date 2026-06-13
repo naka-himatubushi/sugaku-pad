@@ -15,6 +15,9 @@ from pathlib import Path
 from PIL import Image
 from pix2tex.cli import LatexOCR
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repo root を import パスへ
+from mathai.solver import solve_latex
+
 DATASET = Path(__file__).parent / "dataset"
 
 
@@ -43,6 +46,8 @@ def main() -> int:
 
     exact = 0
     sim_total = 0.0
+    solved_ok = 0          # OCR出力をそのまま解いて正解と一致した数（製品観点の指標）
+    solvable_gt = 0        # そもそも solve 対象（解ける）正解問題の数
     for fname, gt in labels.items():
         pred = model(Image.open(DATASET / "img" / fname))
         n_pred, n_gt = normalize(pred), normalize(gt)
@@ -50,13 +55,25 @@ def main() -> int:
         sim = SequenceMatcher(None, n_pred, n_gt).ratio()
         exact += ok
         sim_total += sim
+
+        gt_res = solve_latex(gt)
+        end_to_end = False
+        if gt_res["supported"]:
+            solvable_gt += 1
+            pred_res = solve_latex(pred)
+            end_to_end = pred_res["supported"] and set(pred_res["answer"]) == set(gt_res["answer"])
+            solved_ok += end_to_end
+
         mark = "OK " if ok else "NG "
-        print(f"{fname}: {mark} sim={sim:.2f} pred={pred!r} gt={gt!r}")
+        e2e = "解✓" if end_to_end else ("解✗" if gt_res["supported"] else "解対象外")
+        print(f"{fname}: {mark} {e2e} sim={sim:.2f} pred={pred!r} gt={gt!r}")
 
     n = len(labels)
     acc = exact / n
     print(f"\nexact-match = {acc:.1%} ({exact}/{n})")
     print(f"char-level similarity（平均） = {sim_total / n:.1%}")
+    if solvable_gt:
+        print(f"end-to-end 求解一致 = {solved_ok / solvable_gt:.1%} ({solved_ok}/{solvable_gt} 解ける問題中)")
     print("注: これは印刷体レンダリングでの数値。実機手書きの本ゲートは別途 iPad で測定する。")
     return 0 if acc >= 0.80 else 1
 

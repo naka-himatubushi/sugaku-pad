@@ -16,13 +16,18 @@
   - char-level similarity 平均 = **87.9%**
 - 誤読の傾向: 関数語 "sin" の誤認識（複数）、単独文字（a→Ω）、入れ子分数（tan=sin/cos）の文字化け
 - 注意: 合成画像は matplotlib フォントで pix2tex の学習元（実 LaTeX）と分布差あり。誤読の一部はその差由来の可能性。
-- **暫定示唆**: 印刷体でも 58% → 実機手書きはさらに下がる前提。**確認カード（人が修正してから解く）UX が必須**。
+- **end-to-end 求解一致（OCR出力→latex_input→SolveEngine）= 6/7 (85.7%)**（`spikes/ocr/eval_solve_from_predictions.py`）
+  - exact-match 58% に対し end-to-end 86% → **latex_input 層が OCR の表記揺れ（2X/x^{2}/\\frac/\\,）を吸収**。失敗は x→π の本物の誤読 1 件のみ
+- **暫定示唆**: 文字列一致が低くても「解ければよい」観点では印刷体で 86%。**確認カード（人が修正してから解く）UX があれば実用域に届きうる**。実機手書きの実測が本ゲート。
 - **未（実機ゲート）**: ① pix2tex を CoreML/MLX 化して端末搭載 ② 実 Pencil 手書き 30問で正答率 ≥80% を測定
+- ⚠️ **venv 破損**: `brew install`(mas/xcodegen) の cleanup が python@3.13 を削除 → `.venv`(torch/pix2tex) 死亡。**ライブ OCR 再実行には venv 再構築が必要**（`brew install python@3.13` → venv → `pip install pix2tex`）。end-to-end 評価は captured_predictions.json で torch 無しに再現可能
 
-## Spike B — 端末内 計算（ソルバ: 実施済 / 埋め込み・FM比較: 未）
+## Spike B — 端末内 計算（コア実装: 実施済 / 埋め込み・FM比較: 未）
 
-- `spikes/compute/solver.py`（SymPy SolveEngine 原型）+ `test_solver.py`：**8件 PASS**
-  - 対応: 線形・二次（因数分解手順）・式評価・三角（評価/恒等式/方程式分類）・非対応判定
+- **`mathai/` パッケージ**（アプリ本体の計算コア、純 SymPy・端末内埋め込み前提）：**テスト 20件 PASS**
+  - `mathai/solver.py`（SolveEngine）: 線形・二次（因数分解手順）・式評価・三角（評価/恒等式/方程式分類）・非対応判定。暗黙乗算で "2x+3=7" も解釈
+  - `mathai/latex_input.py`（LaTeX入力層）: OCR 出力 LaTeX → SymPy 数式へ変換（\\frac/\\sqrt/^{}/三角/暗黙乗算/大文字小文字）
+  - `solve_latex()` で OCR→求解を一気通貫
 - `spikes/compute/eval_fm_vs_sympy.py`：SymPy 正解生成 OK。FM 回答記入→採点の枠組み完成
 - **未（実機ゲート）**: ① iOS への Python+SymPy 埋め込み（Python-Apple-support）成否 ② 実機 FM 単体の正答率測定（`fm_answers.json` 記入→`score`）
 

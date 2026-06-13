@@ -1,21 +1,33 @@
-"""SolveEngine（SymPy 実装）。
+"""SolveEngine — 数式を SymPy で決定的に解き、種別・手順・解を返す。
 
-数式文字列を受け取り、SymPy で決定的に解いて「種別・手順・解」を返す。
-Spike B の中核であり、将来の本実装 SolveEngine の原型。
+Solve 機能の中核。LaTeX（OCR 出力）と「ゆるい数式文字列」の両方を受け付ける。
+パースは SymPy の暗黙乗算変換を使い、"2x+3=7" のような人間表記も解釈できる。
 
 公開関数:
-    solve_equation(expr: str) -> dict
-        expr: "2*x + 3 = 7" のような方程式、または "1/2 + 1/3" のような式
-        返り値: {supported: bool, kind: str, steps: list[str], answer: list[str]}
+    solve_equation(expr: str) -> dict   # "2x + 3 = 7" / "1/2 + 1/3" など
+    solve_latex(latex: str) -> dict     # "\\frac{x}{2}+1=4" など（LaTeX）
+
+返り値: {supported: bool, kind: str, steps: list[str], answer: list[str]}
 """
 import sympy as sp
+from sympy.parsing.sympy_parser import (
+    parse_expr,
+    standard_transformations,
+    implicit_multiplication_application,
+    convert_xor,
+)
 
-x = sp.symbols("x")
+from .latex_input import latex_to_math
+
+x = sp.Symbol("x")
+_TRANSFORMS = standard_transformations + (implicit_multiplication_application, convert_xor)
+# 複数文字の記号は明示束縛して暗黙乗算による分解（theta -> t*h*e*t*a）を防ぐ
+_LOCALS = {name: sp.Symbol(name) for name in ("x", "y", "theta", "alpha", "beta")}
 
 
 def _parse(s: str):
-    """文字列を SymPy 式に変換する。x を既定の記号として束縛する。"""
-    return sp.sympify(s, locals={"x": x})
+    """ゆるい数式文字列を SymPy 式に変換する（"2x" -> 2*x, "x^2" -> x**2）。"""
+    return parse_expr(s, transformations=_TRANSFORMS, local_dict=_LOCALS)
 
 
 def solve_equation(expr: str) -> dict:
@@ -33,9 +45,7 @@ def solve_equation(expr: str) -> dict:
             kind = "equation"
 
             trig_funcs = (sp.sin, sp.cos, sp.tan, sp.cot, sp.sec, sp.csc)
-            is_trig = any(poly.has(f) for f in trig_funcs)
-
-            if is_trig:
+            if any(poly.has(f) for f in trig_funcs):
                 kind = "trigonometric"
                 steps.append("三角方程式として x を解く")
             else:
@@ -43,7 +53,6 @@ def solve_equation(expr: str) -> dict:
                     degree = sp.Poly(poly, x).degree()
                 except sp.PolynomialError:
                     degree = None
-
                 if degree == 1:
                     kind = "linear"
                     steps.append(f"整理: {poly} = 0")
@@ -64,5 +73,10 @@ def solve_equation(expr: str) -> dict:
         return {"supported": True, "kind": "evaluate", "steps": steps,
                 "answer": [str(result)]}
 
-    except (sp.SympifyError, SyntaxError, TypeError, ValueError, AttributeError):
+    except Exception:
         return {"supported": False, "kind": "unknown", "steps": [], "answer": []}
+
+
+def solve_latex(latex: str) -> dict:
+    """LaTeX を受け取り、数式文字列に変換してから解く。"""
+    return solve_equation(latex_to_math(latex))

@@ -14,7 +14,8 @@ import json
 import sys
 from pathlib import Path
 
-from solver import solve_equation
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repo root を import パスへ
+from mathai.solver import solve_equation
 
 HERE = Path(__file__).parent
 ANSWERS = HERE / "fm_answers.json"

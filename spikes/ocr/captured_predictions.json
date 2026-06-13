@@ -1,0 +1,17 @@
+{
+  "_note": "2026-06-13 の pix2tex 実走で得た実際の OCR 出力（印刷体）。torch 不要で end-to-end 求解を再現評価するためのフィクスチャ。",
+  "predictions": {
+    "q01.png": "2X+3=7",
+    "q02.png": "\\ x^{2}-5x+6=0",
+    "q03.png": "{\\frac{1}{2}}+{\\frac{1}{3}}",
+    "q04.png": "\\mathrm{Sip}^{2}\\,\\theta+\\mathrm{cos}^{2}\\,\\theta=1",
+    "q05.png": "\\mathrm{~[2d}\\cap\\emptyset\\stackrel{\\not{D}}{\\longrightarrow}\\cos\\theta",
+    "q06.png": "3X-9=0",
+    "q07.png": "(X+1)(X-2)",
+    "q08.png": "\\scriptstyle{\\frac{\\pi}{2}}+1=4",
+    "q09.png": "2551\\theta=1",
+    "q10.png": "\\Omega^{2}+D^{2}=C^{2}",
+    "q11.png": "{\\sqrt{x+1}}=3",
+    "q12.png": "\\cos(2\\theta)=1-2\\sin^{2}\\theta"
+  }
+}
