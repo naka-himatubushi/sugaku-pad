@@ -1,0 +1,18 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# macOS
+.DS_Store
+
+# Xcode（iOS アプリ着手後に使用）
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+
+# モデル重み・大容量成果物（評価用データセット画像は再現性のため追跡する）
+*.mlpackage/
+*.mlmodel
