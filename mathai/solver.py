@@ -55,12 +55,13 @@ def solve_equation(expr: str) -> dict:
                     degree = None
                 if degree == 1:
                     kind = "linear"
-                    steps.append(f"整理: {poly} = 0")
-                    steps.append("x について解く")
+                    a, c = poly.coeff(x, 1), poly.coeff(x, 0)
+                    steps.append(f"x の項をまとめる: {a}*x = {-c}")
+                    steps.append(f"両辺を {a} で割る → x = {sols[0]}")
                 elif degree == 2:
                     kind = "quadratic"
                     steps.append(f"因数分解: {sp.factor(poly)} = 0")
-                    steps.append("各因子をゼロにする x を求める")
+                    steps.append(f"各因子を 0 にする → x = {', '.join(str(s) for s in sols)}")
 
             steps.append(f"解: x = {', '.join(str(s) for s in sols)}")
             return {"supported": True, "kind": kind, "steps": steps,

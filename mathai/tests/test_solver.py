@@ -16,6 +16,13 @@ def test_linear_loose_syntax_without_star():
     assert r["answer"] == ["2"]
 
 
+def test_linear_steps_show_isolation():
+    # ステップに「定数を移項した中間式」が現れる（教育的な手順）
+    r = solve_equation("2x + 3 = 7")
+    joined = " ".join(r["steps"])
+    assert "2*x = 4" in joined
+
+
 def test_quadratic_two_roots():
     r = solve_equation("x**2 - 5*x + 6 = 0")
     assert r["kind"] == "quadratic"
