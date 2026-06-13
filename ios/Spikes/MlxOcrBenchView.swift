@@ -8,9 +8,13 @@
 // - GPU キャッシュ上限を絞り、端末のメモリ枯渇(jetsam)を避ける。
 // - latency は連続 N 回計測し、1回目=cold、平均(2回目以降)=warm として Ollama 実測と比較する。
 import SwiftUI
+import OSLog
 import MLX
 import MLXLMCommon
 import MLXVLM
+
+// 結果は画面表示に加えて os_log にも出す。Xcode コンソール / log stream で拾えて取りこぼさない。
+private let benchLog = Logger(subsystem: "com.nakazawa.mathai", category: "mlx-bench")
 
 /// 1 回の推論結果（latency と認識テキスト、スループット）。
 struct RunSample: Identifiable {
@@ -84,8 +88,25 @@ final class MlxOcrBench {
             peakFootprintMB = peak
             availableMB = MemoryProbe.availableMB()
             status = "完了"
+
+            // 後から確実に拾えるよう要約をログへ。device: iPad Pro M4 等。
+            let cold = samples.first?.seconds ?? 0
+            let warm = samples.filter { $0.index > 0 }.map(\.seconds)
+            let warmAvg = warm.isEmpty ? 0 : warm.reduce(0, +) / Double(warm.count)
+            let tps = samples.last?.tokensPerSecond ?? 0
+            benchLog.notice(
+                """
+                MLX-BENCH-RESULT model=qwen2.5VL-3b-4bit load=\(self.loadSeconds ?? 0, format: .fixed(precision: 1))s \
+                cold=\(cold, format: .fixed(precision: 2))s warmAvg=\(warmAvg, format: .fixed(precision: 2))s \
+                tokensPerSec=\(tps, format: .fixed(precision: 1)) \
+                ramAfterLoadMB=\(self.footprintAfterLoadMB ?? 0, format: .fixed(precision: 0)) \
+                ramPeakMB=\(peak, format: .fixed(precision: 0)) \
+                availMB=\(self.availableMB ?? 0, format: .fixed(precision: 0)) \
+                text=\(self.samples.last?.text ?? "", privacy: .public)
+                """)
         } catch {
             status = "エラー: \(error.localizedDescription)"
+            benchLog.error("MLX-BENCH-ERROR \(error.localizedDescription, privacy: .public)")
         }
     }
 
