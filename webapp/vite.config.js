@@ -10,6 +10,9 @@ export default defineConfig({
   },
   server: {
     host: true,
-    proxy: { '/solve': 'http://localhost:8077' },
+    proxy: {
+      '/solve': 'http://localhost:8077',
+      '/recognize': 'http://localhost:8077',
+    },
   },
 })

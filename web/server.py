@@ -26,7 +26,7 @@ _CAPTURES = Path(__file__).parent / "captures"  # 手書き画像と結果ログ
 _CAPTURES.mkdir(exist_ok=True)
 # 手書きは vision LLM(Ollama) で認識する（pix2tex は印刷専用で手書き不可と実証済み）
 _OLLAMA = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
-_OCR_MODEL = os.environ.get("OCR_MODEL", "gemma4:12b")  # ローカル・マルチモーダル
+_OCR_MODEL = os.environ.get("OCR_MODEL", "qwen2.5vl:7b")  # 実手書きで正確かつ高速(0.5s)
 _OCR_PROMPT = (
     "You are a precise math OCR. Transcribe the handwritten mathematical expression "
     "in the image into ONE line of LaTeX. Output ONLY the LaTeX code — no explanation, "
@@ -55,6 +55,19 @@ class SolveRequest(BaseModel):
 @app.get("/", response_class=HTMLResponse)
 def index() -> str:
     return _INDEX.read_text(encoding="utf-8")
+
+
+@app.post("/recognize")
+def recognize(req: SolveRequest) -> dict:
+    """画像 → LaTeX のみ（確認カード用）。求解はしない。"""
+    if not req.image:
+        return {"latex": ""}
+    b64 = req.image.split(",", 1)[-1]
+    image_name = datetime.datetime.now().strftime("%Y%m%d-%H%M%S-%f") + ".png"
+    (_CAPTURES / image_name).write_bytes(base64.b64decode(b64))
+    latex = _ocr_latex(b64)
+    _log("recognize", image_name, latex, {"supported": None, "kind": "recognize", "answer": []})
+    return {"latex": latex}
 
 
 @app.post("/solve")
