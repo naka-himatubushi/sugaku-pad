@@ -2,7 +2,7 @@
 
 - 日付: 2026-06-13
 - 問い: **実際にある定番の方程式を iPad に手書きで連続入力**したとき、認識→求解の通しでどれだけ正解できるか
-- 入力: 中沢さん本人が iPad Safari の webapp に16問を順に手書き
+- 入力: 筆者本人が iPad Safari の webapp に16問を順に手書き
 - 処理: Mac サーバが OCR（**qwen2.5-VL 7B / ローカル Ollama**）→ `mathai` で求解、`web/captures/log.jsonl` に記録
 - 採点: `spikes/solve/grade_session.py`（recognize→直後solveをペア化・重複除去・OCR一致は SymPy で意味的に判定）
 - 問題と正解: `spikes/solve/problems.json`（期待解は SymPy で代入検証済、`build_problems.py`）

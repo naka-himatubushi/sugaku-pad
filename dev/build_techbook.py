@@ -25,12 +25,12 @@ DEVLOG_HTML = """
 
 <h2>9-2. 開発体制 — AI とのペアプログラミング</h2>
 <p>MathAI の実装は、<strong>AI(Claude)との協働(ペアプログラミング)</strong>で進めました。
-コード(Swift / Python / MLX 連携 / SwiftUI)の多くは AI 支援で書き、私(中沢)は
+コード(Swift / Python / MLX 連携 / SwiftUI)の多くは AI 支援で書き、私は
 <strong>研究の方向づけ・技術的な意思決定・徹底した実機検証</strong>を担いました。
 「全部を自力で一行ずつ書いた」わけではありません。ここを正直にしておきます。</p>
 
 <table>
-<thead><tr><th>役割</th><th>主に AI 支援</th><th>主に私(中沢)が主導</th></tr></thead>
+<thead><tr><th>役割</th><th>主に AI 支援</th><th>主に私が主導</th></tr></thead>
 <tbody>
 <tr><td>研究テーマの設定</td><td></td><td>「クラウド無しで端末内だけでどこまで作れるか」を定義</td></tr>
 <tr><td>技術的意思決定</td><td>選択肢と根拠の提示</td><td>on-device 方針 / モデル選定 / 二層設計の採用 / UX 方針の決定</td></tr>
@@ -179,6 +179,11 @@ dl.gloss dd{margin:2px 0 0 0;color:#333}
         "flowchart:{useMaxWidth:true,htmlLabels:true}});</script>"
         "</body></html>"
     )
+
+    # .mermaid 図が <strong>/<p> に入れ子になると WebKit の整形で図テキストが壊れ
+    # "Syntax error in text" になるため、素のブロックへ引き上げる(第8章で発生した不具合の恒久対策)。
+    doc = doc.replace('<strong><div class="mermaid">', '</p><div class="mermaid">')
+    doc = doc.replace('</div></strong>', '</div><p>')
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(doc, encoding="utf-8")

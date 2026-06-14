@@ -1,6 +1,6 @@
 """手書き end-to-end セッションを採点する。
 
-webapp で中沢さんが問題を順に手書きすると、Mac サーバが web/captures/log.jsonl に
+webapp で筆者が問題を順に手書きすると、Mac サーバが web/captures/log.jsonl に
 各問の recognize(生 OCR) と solve(求解 latex+answer) を記録する。本スクリプトは
 problems.json の期待解と突き合わせ、(1)OCR一致(意味的) (2)end-to-end 求解正答率を出す。
 

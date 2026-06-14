@@ -22,7 +22,7 @@ Goodnotes AI for Math を**スクラッチから・完全 on-device のネイテ
 - **Solve**（全ステップ提示）と **Teach Me**（概念先行のガイド学習）の2モード
 - 計算は本家では Wolfram|Alpha、会話・説明は LLM、という分業
 
-### 本クローンの方針（中沢さんの選択）
+### 本クローンの方針（筆者の選択）
 - **新規スクラッチ**（既存 `~/sandbox/math-ocr-mvp/` のコードは流用しない。知見のみ参照）
 - **ネイティブ iPad アプリ**（SwiftUI / PencilKit）
 - **Solve モードを最初に**作る

@@ -41,7 +41,7 @@ dl.gloss dd{margin:2px 0 0 0;color:#333}
 <p>MathAI はこの出前をやめて、<strong>すべて自分の iPad の中だけで完結</strong>させます。手書きの読み取りも、計算も、答えの表示も、iPad というひとつの台所の中で行い、<strong>外部に一切データを送りません</strong>。これを<strong>オンデバイス</strong>(on-device、「端末の中で」の意味)と呼びます。出前ではなく自炊、というイメージです。</p>
 
 <blockquote>
-<p>このアプリは中沢さん個人の<strong>研究プロジェクト</strong>です。Goodnotes のような完成品の市販アプリと同じ完成度を目指したものではありません。「クラウドに頼らず、端末の中だけでどこまで実用的な体験を作れるか」を実際に手を動かして確かめることが目的です。</p>
+<p>このアプリは筆者個人の<strong>研究プロジェクト</strong>です。Goodnotes のような完成品の市販アプリと同じ完成度を目指したものではありません。「クラウドに頼らず、端末の中だけでどこまで実用的な体験を作れるか」を実際に手を動かして確かめることが目的です。</p>
 </blockquote>
 
 <h2>1-2. なぜ作ったか — 研究テーマ</h2>
@@ -163,7 +163,7 @@ dl.gloss dd{margin:2px 0 0 0;color:#333}
 
 <h3>「確認カード」と「検算」はそれぞれ別の役割</h3>
 
-<p>初心者がよく誤解しがちなのですが、「確認カード」と「検算」は<strong>守っているものが違います</strong>。これは中沢さん自身が実際に数値で測って確かめた、このプロジェクトの重要な発見です(詳しくは別章)。</p>
+<p>初心者がよく誤解しがちなのですが、「確認カード」と「検算」は<strong>守っているものが違います</strong>。これは筆者自身が実際に数値で測って確かめた、このプロジェクトの重要な発見です(詳しくは別章)。</p>
 
 <ul>
 <li><strong>検算が守るのは「計算の正しさ」</strong>: 出た答えを元の式に代入して成り立つか確かめます。これは<strong>計算ミスは防げますが、読み取りミスはほぼ防げません</strong>。なぜなら、AI が <code>29</code> を <code>28</code> と読み違えても、「<code>2x+7=28</code> という式」としては正しく解けて検算も通ってしまうからです。式そのものが間違って読まれていることには、検算は気づけないのです。</li>
@@ -229,7 +229,7 @@ dl.gloss dd{margin:2px 0 0 0;color:#333}
 
 <ul>
 <li><strong>プライバシー</strong>: あなたが書いた勉強ノートや計算過程が外部に送られない。学習内容は極めて個人的なものなので、端末から出さないこと自体に価値があります。</li>
-<li><strong>オフラインで動く</strong>: 電車の中でも、電波がなくても動きます。中沢さんの方針「業務ツールはローカル完結優先(外出中も動くべき)」とも一致します。</li>
+<li><strong>オフラインで動く</strong>: 電車の中でも、電波がなくても動きます。筆者の方針「業務ツールはローカル完結優先(外出中も動くべき)」とも一致します。</li>
 <li><strong>ランニングコストがゼロ</strong>: クラウド AI は使うたびに課金されますが、端末内で動かせば追加費用は発生しません。</li>
 </ul>
 
@@ -324,7 +324,7 @@ no dollar signs, no code fences.</code></pre>
 
 <h3>第1幕: Mac の Ollama ベンチでは、どれも満点だった</h3>
 
-<p>最初は Mac 上で <strong>Ollama</strong>(オラマ。<em>ローカルで LLM を手軽に動かすツール</em>)を使い、中沢さん本人が手書きした実データで候補を比較しました(<code>docs/superpowers/spikes/OCR_BENCHMARK.md</code>)。指標は2つ ——「①文字一致(読み取った文字列が正解と一致するか)」と「②end-to-end 求解一致(実際に計算まで通して同じ答えになるか)」です。</p>
+<p>最初は Mac 上で <strong>Ollama</strong>(オラマ。<em>ローカルで LLM を手軽に動かすツール</em>)を使い、筆者本人が手書きした実データで候補を比較しました(<code>docs/superpowers/spikes/OCR_BENCHMARK.md</code>)。指標は2つ ——「①文字一致(読み取った文字列が正解と一致するか)」と「②end-to-end 求解一致(実際に計算まで通して同じ答えになるか)」です。</p>
 
 <table>
 <thead><tr><th>モデル</th><th>パラメータ</th><th>4bit 実体</th><th>手書き精度</th><th>warm 速度</th><th>8GB iPad 適合</th></tr></thead>
@@ -410,7 +410,7 @@ no dollar signs, no code fences.</code></pre>
 <p>誇張しないために、この OCR レイヤーで「できないこと・限界」を明記します。</p>
 
 <ul>
-<li><strong>検証データはまだ小規模</strong>: 手書き精度の評価は中沢さん本人の数問〜十数問規模。三角関数・指数・複雑な根号・乱雑な字などで崩れる可能性は残ります。だからこそ確認カードと検算を入れています。</li>
+<li><strong>検証データはまだ小規模</strong>: 手書き精度の評価は筆者本人の数問〜十数問規模。三角関数・指数・複雑な根号・乱雑な字などで崩れる可能性は残ります。だからこそ確認カードと検算を入れています。</li>
 <li><strong>速度はクラウドより遅い</strong>: 実機 warm で約 2.4 秒。瞬時ではありません(前述)。</li>
 <li><strong>読み取りミスは検算では救えない</strong>: 94% は人の確認頼み(前述)。</li>
 <li><strong>計算側の根本的な限界もある</strong>: これは次章の計算エンジンの話ですが、OCR が完璧に読めても、数学的に「手順として解けない」問題があります。たとえば <strong>5次以上の方程式の一般解</strong>は、数学的に「読める形の公式」が存在しないことが証明されており(計算結果も数値だけの根になる)、MathAI は無理に答えをひねり出さず「解けません」と正直に表示します(<code>docs/superpowers/spikes/METHODS_ROADMAP.md</code>)。「何でも解ける」とは決して言いません。</li>
@@ -1382,10 +1382,10 @@ s = re.sub(r"(?&lt;=\d)\s+(?=\d)", "", s)</code></pre>
 <p>説明は<strong>正直さ最優先</strong>で書いています。MathAI が実際にやっていること・<em>できていないこと</em>を、ごまかさずに書きました。たとえば「AI が数式を読む」と聞くと魔法のようですが、中身は確率的な推測で、間違えます。だからこそ MathAI は「人が一度確認するカード」と「計算結果を逆算で確かめる検算」の二段構えを置いています — その役割分担も、各用語の説明に織り込んであります。</p>
 
 <blockquote>
-<p>このアプリは「ローカル(端末内) AI だけで、どこまで気持ちよく使えるか」を試す<strong>個人研究プロジェクト</strong>です。商用アプリのような完成度ではありません。数字(精度や速度)は、中沢さん自身が iPad 実機・Mac で測った実測値をそのまま載せています。サンプル数が少ないものは「少ない」と明記します。</p>
+<p>このアプリは「ローカル(端末内) AI だけで、どこまで気持ちよく使えるか」を試す<strong>個人研究プロジェクト</strong>です。商用アプリのような完成度ではありません。数字(精度や速度)は、筆者自身が iPad 実機・Mac で測った実測値をそのまま載せています。サンプル数が少ないものは「少ない」と明記します。</p>
 </blockquote>
 
-<p>用語のうち「アプリの中で何がどうつながっているか」は、言葉だけより図で見たほうが早いものもあります。下の<strong><div class="mermaid">flowchart LR
+<p>用語のうち「アプリの中で何がどうつながっているか」は、言葉だけより図で見たほうが早いものもあります。下の</p><div class="mermaid">flowchart LR
     A[&quot;手書き入力&lt;br/&gt;PencilKit&quot;] --&gt; B[&quot;OCR / VLM&lt;br/&gt;MLX で Qwen2-VL 2B&lt;br/&gt;(4bit 量子化)&quot;]
     B --&gt; C[&quot;確認カード&lt;br/&gt;人がワンタップ修正&quot;]
     C --&gt; D[&quot;計算&lt;br/&gt;埋め込み Python + SymPy&quot;]
@@ -1394,7 +1394,7 @@ s = re.sub(r"(?&lt;=\d)\s+(?=\d)", "", s)</code></pre>
     classDef prob fill:#fff3e0,stroke:#e8a33d,color:#000;
     classDef human fill:#f3f0ff,stroke:#8a6dde,color:#000;
     classDef det fill:#e8f0fe,stroke:#5b8def,color:#000;
-    class B prob; class C human; class D,E det;</div></strong>で、本文で定義した用語が処理パイプラインのどこに当たるかを示しました。あわせて<strong><div class="mermaid">flowchart TB
+    class B prob; class C human; class D,E det;</div><p>で、本文で定義した用語が処理パイプラインのどこに当たるかを示しました。あわせて</p><div class="mermaid">flowchart TB
     subgraph ONDEV[&quot;端末内 (オンデバイス) = MathAI の方式&quot;]
         I1[&quot;手書き画像&quot;] --&gt; P1[&quot;iPad の中で&lt;br/&gt;認識・計算・検算&quot;]
         P1 --&gt; R1[&quot;答え&quot;]
@@ -1404,7 +1404,7 @@ s = re.sub(r"(?&lt;=\d)\s+(?=\d)", "", s)</code></pre>
         I2[&quot;手書き画像&quot;] --&gt; NET[&quot;インターネット送信&quot;]
         NET --&gt; SRV[&quot;会社のサーバで&lt;br/&gt;認識・計算&quot;]
         SRV --&gt; R2[&quot;答え&quot;]
-    end</div></strong>も置いています。</p>
+    end</div><p>も置いています。</p>
 
 <p>それでは、用語集本体(このページの下に続く一覧)をご覧ください。各用語は「一言の定義 → かみ砕いた説明 → 必要なら例え」の順で書いてあります。</p>
 
@@ -1421,12 +1421,12 @@ s = re.sub(r"(?&lt;=\d)\s+(?=\d)", "", s)</code></pre>
 
 <h2>9-2. 開発体制 — AI とのペアプログラミング</h2>
 <p>MathAI の実装は、<strong>AI(Claude)との協働(ペアプログラミング)</strong>で進めました。
-コード(Swift / Python / MLX 連携 / SwiftUI)の多くは AI 支援で書き、私(中沢)は
+コード(Swift / Python / MLX 連携 / SwiftUI)の多くは AI 支援で書き、私は
 <strong>研究の方向づけ・技術的な意思決定・徹底した実機検証</strong>を担いました。
 「全部を自力で一行ずつ書いた」わけではありません。ここを正直にしておきます。</p>
 
 <table>
-<thead><tr><th>役割</th><th>主に AI 支援</th><th>主に私(中沢)が主導</th></tr></thead>
+<thead><tr><th>役割</th><th>主に AI 支援</th><th>主に私が主導</th></tr></thead>
 <tbody>
 <tr><td>研究テーマの設定</td><td></td><td>「クラウド無しで端末内だけでどこまで作れるか」を定義</td></tr>
 <tr><td>技術的意思決定</td><td>選択肢と根拠の提示</td><td>on-device 方針 / モデル選定 / 二層設計の採用 / UX 方針の決定</td></tr>

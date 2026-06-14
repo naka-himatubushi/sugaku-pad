@@ -1,6 +1,6 @@
 """実手書きで qwen2.5-VL の手書き数式 OCR 正答率を測る研究用ベンチ。
 
-中沢さんが webapp で実際に書いた手書き（handwriting_eval/）を正解ラベルと突き合わせ、
+筆者が webapp で実際に書いた手書き（handwriting_eval/）を正解ラベルと突き合わせ、
 (1) 文字一致（正規化後）と (2) end-to-end 求解一致（mathai で解いて同じ答えか）を測る。
 
 使い方: .venv/bin/python spikes/ocr/eval_handwriting.py

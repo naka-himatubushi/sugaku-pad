@@ -5,7 +5,7 @@ FM 呼び出しは Mac には無いため、2 モードで運用する:
 
   python eval_fm_vs_sympy.py generate
       -> 問題セットと SymPy 正解を出力し、fm_answers.json のテンプレを作る
-      （中沢さんは実機 MathAI の Spike B 画面で各問を FM に解かせ、回答を記入）
+      （筆者は実機 MathAI の Spike B 画面で各問を FM に解かせ、回答を記入）
 
   python eval_fm_vs_sympy.py score
       -> fm_answers.json を読み、FM 単体の正答率を SymPy 正解と突き合わせて集計

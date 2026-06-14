@@ -2,7 +2,7 @@
 
 - 日付: 2026-06-13
 - 目的: ローカル LLM の手書き数式認識が**実際どれだけ通用するか**を数値化する
-- データ: 中沢さん本人が webapp で実際に書いた手書き 5 問（`spikes/ocr/handwriting_eval/`）
+- データ: 筆者本人が webapp で実際に書いた手書き 5 問（`spikes/ocr/handwriting_eval/`）
 - 手段: `spikes/ocr/eval_handwriting.py`（OCR は **qwen2.5-VL 7B / ローカル Ollama**）
 - 指標: ①文字一致（正規化後）②end-to-end 求解一致（mathai で解いて同じ答えか）
 

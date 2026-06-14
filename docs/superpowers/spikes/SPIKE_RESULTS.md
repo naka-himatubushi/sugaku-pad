@@ -3,7 +3,7 @@
 最終更新: 2026-06-13
 関連: `docs/superpowers/plans/2026-06-13-on-device-feasibility-spikes.md`
 
-進行中。Mac 上で自律検証できる部分を先行実施。実機（iPad + Xcode）が要る部分は中沢さん待ち。
+進行中。Mac 上で自律検証できる部分を先行実施。実機（iPad + Xcode）が要る部分は筆者待ち。
 
 ---
 
@@ -41,7 +41,7 @@
 
 ---
 
-## 中沢さん側の必須アクション（自律不可）
+## 筆者側の必須アクション（自律不可）
 
 1. **Xcode を App Store からインストール**（現状 Command Line Tools のみ。Swift/iOS は一切ビルド不可）
 2. 実機 iPad を用意し、無料 Apple ID で署名・信頼設定
