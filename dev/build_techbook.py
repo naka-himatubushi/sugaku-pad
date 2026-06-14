@@ -20,11 +20,11 @@ DOCS = ROOT / "docs" / "techbook.html"
 # 開発体制・設計判断ログ章(正直に。AI支援と人の判断を区別する)
 DEVLOG_HTML = """
 <h2>9-1. この本と、開発の進め方について(正直な記録)</h2>
-<p>この章は、MathAI を「誰が・どう作ったか」を正直に書き残すためのものです。面談などで実績を語るとき、
+<p>この章は、SugakuPad を「誰が・どう作ったか」を正直に書き残すためのものです。面談などで実績を語るとき、
 盛らずに事実で話せるようにしておくことが、結局いちばん信頼されると考えています。</p>
 
 <h2>9-2. 開発体制 — AI とのペアプログラミング</h2>
-<p>MathAI の実装は、<strong>AI(Claude)との協働(ペアプログラミング)</strong>で進めました。
+<p>SugakuPad の実装は、<strong>AI(Claude)との協働(ペアプログラミング)</strong>で進めました。
 コード(Swift / Python / MLX 連携 / SwiftUI)の多くは AI 支援で書き、私は
 <strong>研究の方向づけ・技術的な意思決定・徹底した実機検証</strong>を担いました。
 「全部を自力で一行ずつ書いた」わけではありません。ここを正直にしておきます。</p>
@@ -169,8 +169,8 @@ dl.gloss dd{margin:2px 0 0 0;color:#333}
     doc = (
         "<!DOCTYPE html><html lang=\"ja\"><head><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
-        "<title>MathAI 技術書</title><style>" + css + "</style></head><body>"
-        "<header class=\"book\"><h1>MathAI 技術書</h1>"
+        "<title>SugakuPad 技術書</title><style>" + css + "</style></head><body>"
+        "<header class=\"book\"><h1>SugakuPad 技術書</h1>"
         "<p>完全オンデバイス手書き数学アプリ — 設計・実装・研究の記録</p></header>"
         "<nav id=\"toc\"><h2>目次</h2><ol>" + toc_html + "</ol></nav>"
         "<main>" + "".join(sections) + "</main>"

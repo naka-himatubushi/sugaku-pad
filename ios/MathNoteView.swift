@@ -328,7 +328,7 @@ struct FloatingActionBar: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Text("MathAI")
+            Text("SugakuPad")
                 .font(.headline)
                 .padding(.trailing, 4)
 
