@@ -13,7 +13,7 @@
 
 ---
 
-## なぜ作ったか（既存サービスとの違い）
+## なぜ作ったか — 既存サービスとの違いと、その裏付け
 
 手書き数学アプリ自体は珍しくない。差別化は機能ではなく **「どこで動かすか」** にある——**クラウドに依存せず、iPad 単体・ローカル LLM だけで完結**させた点。
 
@@ -26,78 +26,38 @@
 | コスト | API / サブスク | **API 課金ゼロ** |
 | 答えの正しさ | ブラックボックス | **SymPy が解を代入して決定論的に検算（verified）** |
 
----
+### で、本当にオンデバイスで動くのか（研究ログ・自分の設計判断）
 
-## 仕組み（2 本柱 ＋ 二層の信頼性）
+「完全オンデバイス」を成立させるために、思いつきではなく**自分で検証して決めた**こと。
 
-設計の肝は **「確率的なローカル LLM 認識」と「決定的な SymPy 計算」を、人の確認カードと検算で橋渡しする二層構造**。
-
-```mermaid
-flowchart LR
-    A["✍️ 手書き入力<br/>PencilKit（iPad）"] --> B
-    B["① 認識（確率的）<br/>ローカル Vision LLM<br/>MLX・Qwen2-VL 2B（端末内）"] --> C
-    C["② 確認カード<br/>人がワンタップ修正"] --> D
-    D["③ 計算＋検算（決定的）<br/>端末内 SymPy / mathai<br/>解を代入して検証 ✓"] --> E
-    E["④ 表示<br/>SwiftMath 数式カード"]
-
-    classDef prob fill:#fff3e0,stroke:#e8a33d,color:#000;
-    classDef human fill:#f3f0ff,stroke:#8a6dde,color:#000;
-    classDef det fill:#e8f0fe,stroke:#5b8def,color:#000;
-    class B prob; class C human; class D det;
-```
-
-- **① 認識（確率的）**: ローカル Vision LLM が手書き→LaTeX。完璧でない前提に立つ。
-- **② 確認（人）**: 誤認識をワンタップ修正＝“最後の数%”の保険。
-- **③ 計算＋検算（決定的）**: SymPy で求解し、**答えを元の式に代入して検証**（`verified`）。間違いは弾ける。
-
-### 計算コア `mathai` の中身
-
-`=` の有無で方程式/式に分け、種別ごとに SymPy で解いて **検算**する。
-
-```mermaid
-flowchart TD
-    IN["LaTeX 入力<br/>(OCR出力 / テキスト)"] --> NORM["LaTeX入力層<br/>暗黙の掛け算・frac/sqrt/三角<br/>不等号・cases・デリミタ除去"]
-    NORM --> RT{"入力の形"}
-    RT -->|"複数式<br/>; / 改行 / cases"| SYS["連立<br/>solve→代入で検算"]
-    RT -->|"不等号<br/>&lt; &gt; ≤ ≥"| INQ["不等式(一次/二次)<br/>solveset(実数)→点サンプルで検算"]
-    RT -->|"単一の等式/式"| Q{"= がある?"}
-    Q -->|"あり（方程式）"| EQ{"種別"}
-    EQ -->|"1次"| L["線形<br/>移項→両辺を割る"]
-    EQ -->|"2次"| QD["二次<br/>有理数解→因数分解 / それ以外→解の公式＋判別式"]
-    EQ -->|"三角を含む"| TR["三角<br/>三角方程式として解く"]
-    Q -->|"なし（式）"| EX{"形は?"}
-    EX -->|"数値"| NU["評価<br/>nsimplify"]
-    EX -->|"多項式(2次↑)"| PO["因数分解+=0の根"]
-    EX -->|"その他"| SI["簡約<br/>simplify"]
-    SYS --> SOL["解 / 結果"]
-    INQ --> SOL
-    L --> SOL
-    QD --> SOL
-    TR --> SOL
-    NU --> SOL
-    PO --> SOL
-    SI --> SOL
-    SOL --> VF["検算レイヤー<br/>代入 / サンプル点で<br/>SymPy が成立を確認"]
-    VF --> OUT(["出力: steps_latex /<br/>answer_latex / verified ✓"])
-    classDef det fill:#e8f0fe,stroke:#5b8def,color:#000;
-    classDef verify fill:#e3f6e8,stroke:#1aa64b,color:#000;
-    class NORM,L,QD,TR,NU,PO,SI,SOL det;
-    class VF,OUT verify;
-```
-
----
-
-## 開発背景・設計判断（研究ログ）
-
-「完全オンデバイス」を成立させるために、自分で検証して決めたこと。
-
-- **オンデバイスでモデルを選定（証拠ベース）** — 実機 MLX ベンチで Qwen2-VL **2B / 3B / 7B** を比較。意外にも **3B-4bit は実機で誤読が多く、2B-4bit の方が安定**（精度・RAM ~1.5GB・冷えロードの速さ）。8GB iPad では **2B を採用**（7B は 16GB 機向け）。印刷数式 OCR（pix2tex）は手書きで破綻することも実測。→ [`docs/superpowers/spikes/OCR_BENCHMARK.md`](docs/superpowers/spikes/OCR_BENCHMARK.md)
-- **求解は Python 埋め込みで（Swift 再実装ではなく）** — 記号計算は SymPy が圧倒的に堅い。書き直すより **CPython を端末に埋め込み `mathai`/SymPy をそのまま動かす**判断。→ [`docs/superpowers/spikes/ONDEVICE_PYTHON.md`](docs/superpowers/spikes/ONDEVICE_PYTHON.md)
-- **信頼性を定量化** — OCR 誤りを安全網がどれだけ止めるか測定。**検算が止めたのは 6%、残り 94% は「確認カード（人の目）」頼み**だった（誤読された式も“その式としては正しく解ける”ため検算を通る）。→ 二層が別目的で必要だと数値で確定。※ 16 問・単一文字の模擬誤り 141 件という**小規模ベンチ**で、実 OCR 誤り分布での再測は今後。→ [`docs/superpowers/spikes/RELIABILITY.md`](docs/superpowers/spikes/RELIABILITY.md)
-- **つまずき & デバッグ（実機が教えた罠）** — ①ダークモードで PencilKit の黒インクが白画像化し OCR が破綻 → ライトトレイトで描画して解決。②正方形 1024 リサイズで横長の式が潰れて精度劣化 → アスペクト比保持に。③OCR が桁の間に空白を入れる → 桁間だけ詰める。
-- **端末内 AI フレームワークの調査** — Apple Core AI を調べ、現状要件では手書き OCR に不適と判断 → **MLX Swift** を採用。→ [`docs/superpowers/spikes/COREAI_SPIKE.md`](docs/superpowers/spikes/COREAI_SPIKE.md)
+- **オンデバイスでモデルを選定（証拠ベース）** — 実機 MLX ベンチで Qwen2-VL **2B / 3B / 7B** を比較。意外にも **3B-4bit は実機で誤読が多く、2B-4bit の方が安定**（精度・RAM ~1.5GB・冷えロードの速さ）。8GB iPad では **2B を採用**（7B は 16GB 機向け）。印刷数式 OCR（pix2tex）は手書きで破綻することも実測。→ [`OCR_BENCHMARK.md`](docs/superpowers/spikes/OCR_BENCHMARK.md)
+- **求解は Python 埋め込みで（Swift 再実装ではなく）** — 記号計算は SymPy が圧倒的に堅い。書き直すより **CPython を端末に埋め込み `mathai`/SymPy をそのまま動かす**判断。→ [`ONDEVICE_PYTHON.md`](docs/superpowers/spikes/ONDEVICE_PYTHON.md)
+- **信頼性を定量化** — OCR 誤りを安全網がどれだけ止めるか測定。**検算が止めたのは 6%、残り 94% は「確認カード（人の目）」頼み**だった（誤読された式も“その式としては正しく解ける”ため検算を通る）。→ 二層が**別目的で**必要だと数値で確定。※ 16 問・単一文字の模擬誤り 141 件という**小規模ベンチ**で、実 OCR 誤り分布での再測は今後。→ [`RELIABILITY.md`](docs/superpowers/spikes/RELIABILITY.md)
+- **つまずき & デバッグ（実機が教えた罠）** — ①ダークモードで PencilKit の黒インクが白画像化し OCR が破綻 → ライトトレイトで描画して解決。②正方形 1024 リサイズで横長の式が潰れ精度劣化 → アスペクト比保持に。③OCR が桁の間に空白を入れる → 桁間だけ詰める。
+- **端末内 AI フレームワークの調査** — Apple Core AI を調べ、現状要件では手書き OCR に不適と判断 → **MLX Swift** を採用。→ [`COREAI_SPIKE.md`](docs/superpowers/spikes/COREAI_SPIKE.md)
 
 > より詳しい技術解説は **アプリ内技術書**（[`docs/techbook.html`](docs/techbook.html)）。低レベル（MLX とは）から Python 埋め込みの決断、設計判断ログまで。
+
+---
+
+## 仕組み — 2 本柱 ＋ 二層の信頼性
+
+<p align="center">
+  <img src="assets/demo/pipeline.gif" alt="パイプライン: 手書き→読む→確認→解く+検算→表示" width="820">
+</p>
+
+- **2 本柱** … **読む（確率的・ローカル VLM）** と **解く（決定論・SymPy）** という、性質の違う 2 つを組み合わせる。
+- **二層の信頼性** … ② **確認カード（人）** ＝ 読み違い（OCR）を救う ＋ ③ **検算（機械）** ＝ 計算の正しさを保証。**役割が違うから両方要る**（上の研究ログの 6% / 94% がその根拠）。
+
+---
+
+## 計算コア `mathai` の中身
+
+<p align="center">
+  <img src="assets/demo/mathai.gif" alt="計算コア: 入力→正規化→種別判定→各種別→解→検算" width="760">
+</p>
+
+`=` の有無で方程式 / 式に分け、**種別（連立・不等式・方程式→1次/2次・式）ごとに SymPy で解き、最後に必ず解を代入して検算**する（`verified`）。手前の **LaTeX 入力層**が OCR の癖（暗黙の掛け算 `2x→2*x`、`\frac`/`\sqrt`、桁間スペース、デリミタ 等）を吸収する。
 
 ---
 
@@ -116,6 +76,7 @@ flowchart TD
 | `spikes/` | OCR・計算エンジンの検証スクリプト（モデル比較／信頼性注入 等） |
 | `docs/` | 設計・実装計画・検証結果・技術書 |
 | `web/` ・ `webapp/` | 前身の Web 版（FastAPI + Canvas）。ネイティブ版の足場 |
+| `assets/demo/` | README 用のデモ・図アニメと生成スクリプト |
 
 ## ステータス
 
