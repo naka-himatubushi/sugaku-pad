@@ -1,4 +1,4 @@
-# sugaku-pad — 完全オンデバイスの手書き数学ノート
+# sugaku-pad — 完全オンデバイスAIの手書き数学ノート
 
 <p align="center">
   <img src="assets/demo/demo.gif" alt="sugaku-pad デモ（再現アニメ）" width="760">
